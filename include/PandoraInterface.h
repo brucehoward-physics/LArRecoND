@@ -63,6 +63,8 @@ public:
                                  ///< (mandatory parameter)
     std::string m_inputFileName; ///< The path to the input file containing events
                                  ///< and/or geometry information
+    std::string m_outputFileName; ///< The path to the OUTPUT file containing Pandora output (BH)
+    bool m_willWriteOutput;       ///< Are we going to write a Pandora output file (BH)
     std::string m_inputTreeName; ///< The optional name of the event TTree
 
     std::string m_geomFileName;    ///< The ROOT file name containing the TGeoManager info
@@ -97,6 +99,9 @@ public:
     float m_lengthScale; ///< The scaling factor to set all lengths to cm
     float m_energyScale; ///< The scaling factor to set all energies to GeV
 
+    // Same as scaling factor for lengthScale but for geometry... added BH
+    float m_lengthScaleGeom;
+
     const float m_mm2cm{0.1f};          ///< mm to cm conversion
     const float m_MeV2GeV{1e-3};        ///< Geant4 MeV to GeV conversion
     const float m_voxelPathShift{1e-3}; ///< Small path shift to find next voxel
@@ -108,6 +113,8 @@ inline Parameters::Parameters() :
     m_dataFormat(Parameters::LArNDFormat::SP),
     m_settingsFile(""),
     m_inputFileName(""),
+    m_outputFileName(""),
+    m_willWriteOutput(false),
     m_inputTreeName(""),
     m_geomFileName(""),
     m_geomManagerName(""),
@@ -131,7 +138,8 @@ inline Parameters::Parameters() :
     m_useLArTPC(true),
     m_voxelWidth(0.4f),
     m_lengthScale(1.0f),
-    m_energyScale(1.0f)
+    m_energyScale(1.0f),
+    m_lengthScaleGeom(0.1f)
 {
 }
 

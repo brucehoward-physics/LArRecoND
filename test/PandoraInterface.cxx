@@ -204,6 +204,10 @@ void RecursiveGeometrySearch(TGeoManager *pSimGeom, const std::string &targetNam
 void MakePandoraTPC(const pandora::Pandora *const pPrimaryPandora, const Parameters &parameters, LArNDGeomSimple &geom,
     const std::unique_ptr<TGeoHMatrix> &pVolMatrix, const TGeoNode *pTargetNode, const unsigned int tpcNumber)
 {
+    // BH: THIS APPEARS TO INDICTATE THAT THE SAME LENGTH SCALE SHOULD BE 
+    //     USED HERE AS IN THE HITS, BUT IT SEEMS TO ME THAT THIS IS IN MM...
+    //     m_lengthScale --> m_lengthScaleGeom
+
     // Get the BBox dimensions from the placement volume, which is assumed to be a cube
     TGeoVolume *pCurrentVol = pTargetNode->GetVolume();
     TGeoShape *pCurrentShape = pCurrentVol->GetShape();
@@ -211,9 +215,9 @@ void MakePandoraTPC(const pandora::Pandora *const pPrimaryPandora, const Paramet
     TGeoBBox *pBox = dynamic_cast<TGeoBBox *>(pCurrentShape);
 
     // Now can get origin/width data from the BBox
-    const double dx = pBox->GetDX() * parameters.m_lengthScale; // Note these are the half widths
-    const double dy = pBox->GetDY() * parameters.m_lengthScale;
-    const double dz = pBox->GetDZ() * parameters.m_lengthScale;
+    const double dx = pBox->GetDX() * parameters.m_lengthScaleGeom; // Note these are the half widths
+    const double dy = pBox->GetDY() * parameters.m_lengthScaleGeom;
+    const double dz = pBox->GetDZ() * parameters.m_lengthScaleGeom;
     const double *pOrigin = pBox->GetOrigin();
 
     // std::cout << "Origin = (" << pOrigin[0] << ", " << pOrigin[1] << ", " << pOrigin[2] << ")" << std::endl;
@@ -230,9 +234,9 @@ void MakePandoraTPC(const pandora::Pandora *const pPrimaryPandora, const Paramet
     try
     {
         const double *pVolTrans = pVolMatrix->GetTranslation();
-        const double centreX = (level1[0] + pVolTrans[0]) * parameters.m_lengthScale;
-        const double centreY = (level1[1] + pVolTrans[1]) * parameters.m_lengthScale;
-        const double centreZ = (level1[2] + pVolTrans[2]) * parameters.m_lengthScale;
+        const double centreX = (level1[0] + pVolTrans[0]) * parameters.m_lengthScaleGeom;
+        const double centreY = (level1[1] + pVolTrans[1]) * parameters.m_lengthScaleGeom;
+        const double centreZ = (level1[2] + pVolTrans[2]) * parameters.m_lengthScaleGeom;
         geoparameters.m_centerX = centreX;
         geoparameters.m_centerY = centreY;
         geoparameters.m_centerZ = centreZ;
@@ -297,6 +301,9 @@ void ProcessEvents(const Parameters &parameters, const Pandora *const pPrimaryPa
 
 void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimaryPandora, const LArNDGeomSimple &geom)
 {
+    //TFile *outputSource;
+    //if ( parameters.m_willWriteOutput )
+    //    outputSource = TFile::Open(parameters.m_outputFileName.c_str(), "RECREATE");
 
     TFile *fileSource = TFile::Open(parameters.m_inputFileName.c_str(), "READ");
     if (!fileSource)
@@ -478,6 +485,9 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
         } // end space point loop
 
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::ProcessEvent(*pPrimaryPandora));
+
+        // Save info from particles here... ?
+
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::Reset(*pPrimaryPandora));
     } // end event loop
 
@@ -1787,6 +1797,10 @@ bool ParseCommandLine(int argc, char *argv[], Parameters &parameters)
             case 'e':
                 parameters.m_inputFileName = optarg;
                 break;
+            case 'o':
+                parameters.m_outputFileName = optarg;
+                parameters.m_willWriteOutput = true;
+                break;
             case 'k':
                 inputTreeName = optarg;
                 break;
@@ -2017,6 +2031,8 @@ bool ProcessFormatOption(const std::string &formatOption, const std::string &inp
     std::string chosenFormatOption(formatOption);
     std::transform(chosenFormatOption.begin(), chosenFormatOption.end(), chosenFormatOption.begin(), ::tolower);
     bool processed(true);
+
+    parameters.m_lengthScaleGeom = 0.1f; // Added by BH
 
     if (chosenFormatOption == "sp" || chosenFormatOption == "spmc")
     {
