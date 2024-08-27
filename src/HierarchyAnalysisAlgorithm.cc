@@ -142,8 +142,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
 {
     // For storing various reconstructed PFO quantities in the given event
     int sliceId{-1};
-    // Slice and hits
-    IntVector sliceIdVect, n3DHitsVect, nUHitsVect, nVHitsVect, nWHitsVect;
+    // Slice, hits and isShower
+    IntVector sliceIdVect, n3DHitsVect, nUHitsVect, nVHitsVect, nWHitsVect, isShowerVect;
     // Reco neutrino vertex
     FloatVector nuVtxXVect, nuVtxYVect, nuVtxZVect;
     // Cluster start, end, direction, PCA axis lengths and total hit energy
@@ -205,29 +205,36 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 if (n3DHits == 0)
                     continue;
 
-                // Cluster starting point vertex.
-                // Find first and last cluster hit points in case we can't find the vertex position
+                // Find first and last cluster hit points
                 CartesianVector first(max, max, max), last(max, max, max);
                 LArClusterHelper::GetExtremalCoordinates(pCluster3D, first, last);
-                // Get the first vertex if it exists, otherwise use the first hit position
+                // Get the (first) vertex if it exists, otherwise use the first hit position
                 const VertexList &vertices{pPfo->GetVertexList()};
-                const CartesianVector start = (vertices.size() > 0) ? (*vertices.begin())->GetPosition() : first;
+                const CartesianVector vertex = (vertices.size() > 0) ? (*vertices.begin())->GetPosition() : first;
 
                 // Principal component analysis of the cluster
                 CartesianPointVector pointVector;
                 LArClusterHelper::GetCoordinateVector(pCluster3D, pointVector);
                 // Use cluster local vertex for relative axis directions
-                const LArShowerPCA pca = LArPfoHelper::GetPrincipalComponents(pointVector, start);
+                const LArShowerPCA pca = LArPfoHelper::GetPrincipalComponents(pointVector, vertex);
 
-                // Centroid, axis directions and lengths
+                // Centroid, primary axis direction and lengths
                 const CartesianVector centroid{pca.GetCentroid()};
-                const CartesianVector direction{pca.GetPrimaryAxis()};
+                const CartesianVector primaryAxis{pca.GetPrimaryAxis()};
                 const float primaryLength{pca.GetPrimaryLength()};
                 const float secondaryLength{pca.GetSecondaryLength()};
                 const float tertiaryLength{pca.GetTertiaryLength()};
 
-                // Estimate end-point using starting vertex and length along primary axis
-                const CartesianVector endPoint = start + direction * primaryLength;
+                // Cluster start is assumed to be the vertex. Set the end point as either the
+                // first or last hit point that has the largest squared distance from the vertex
+                const float firstDistSq = first.GetDistanceSquared(vertex);
+                const float lastDistSq = last.GetDistanceSquared(vertex);
+                const CartesianVector endPoint = (lastDistSq > firstDistSq) ? last : first;
+
+                // Use the primary axis to set the direction.
+                // Reverse this if (endPoint - vertex) dot primaryAxis < 0
+                const CartesianVector displacement{endPoint - vertex};
+                const CartesianVector direction = (displacement.GetDotProduct(primaryAxis) < 0.0) ? primaryAxis * (-1.0) : primaryAxis;
 
                 // Cluster deposited energy (all hits assume EM energy = hadronic energy)
                 const float clusterEnergy{pCluster3D->GetElectromagneticEnergy()};
@@ -249,15 +256,20 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 nuVtxXVect.emplace_back(rootRecoVtx.GetX());
                 nuVtxYVect.emplace_back(rootRecoVtx.GetY());
                 nuVtxZVect.emplace_back(rootRecoVtx.GetZ());
+
                 // Number of hits in the cluster (by views)
                 n3DHitsVect.emplace_back(n3DHits);
                 nUHitsVect.emplace_back(nUHits);
                 nVHitsVect.emplace_back(nVHits);
                 nWHitsVect.emplace_back(nWHits);
-                // Cluster start, end and direction (from PCA)
-                startXVect.emplace_back(start.GetX());
-                startYVect.emplace_back(start.GetY());
-                startZVect.emplace_back(start.GetZ());
+                // Assume all PFOs are tracks for now
+                const int isShower{0};
+                isShowerVect.emplace_back(isShower);
+
+                // Cluster vertex, end and direction (from PCA)
+                startXVect.emplace_back(vertex.GetX());
+                startYVect.emplace_back(vertex.GetY());
+                startZVect.emplace_back(vertex.GetZ());
                 endXVect.emplace_back(endPoint.GetX());
                 endYVect.emplace_back(endPoint.GetY());
                 endZVect.emplace_back(endPoint.GetZ());
@@ -271,6 +283,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 primaryLVect.emplace_back(primaryLength);
                 secondaryLVect.emplace_back(secondaryLength);
                 tertiaryLVect.emplace_back(tertiaryLength);
+
                 // Cluster energy (sum over all hits)
                 energyVect.emplace_back(clusterEnergy);
 
@@ -340,6 +353,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nUHits", &nUHitsVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nVHits", &nVHitsVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nWHits", &nWHitsVect));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "isShower", &isShowerVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startX", &startXVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startY", &startYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startZ", &startZVect));
