@@ -297,6 +297,46 @@ void ProcessEvents(const Parameters &parameters, const Pandora *const pPrimaryPa
 
 void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimaryPandora, const LArNDGeomSimple &geom)
 {
+    // BH --> adding some stuff to save a ROOT file... other stuff might want: NDaughterPFOs, NParentPFOs, 
+    int thisNuEvt;
+    int thisNuPDG;
+    float thisNuX;
+    float thisNuY;
+    float thisNuZ;
+    float thisPfpEvt;
+    float thisPfpParentCounts;
+    float thisParentX;
+    float thisParentY;
+    float thisParentZ;
+    float thisPfpPDG;
+    float thisPfpX;
+    float thisPfpY;
+    float thisPfpZ;
+    float thisPfpTrkScore;
+    std::vector<float> thisPfpSPX;
+    std::vector<float> thisPfpSPY;
+    std::vector<float> thisPfpSPZ;
+
+    TTree *outTreeSlc = new TTree("SlicePFOs","SlicePFOs");
+    outTreeSlc->Branch( "SlcEvt", &thisNuEvt );
+    outTreeSlc->Branch( "SlcPDG", &thisNuPDG );
+    outTreeSlc->Branch( "SlcVtxX", &thisNuX );
+    outTreeSlc->Branch( "SlcVtxY", &thisNuY );
+    outTreeSlc->Branch( "SlcVtxZ", &thisNuZ );
+    TTree *outTreePfp = new TTree("ParticlePFOs","ParticlePFOs");
+    outTreePfp->Branch( "PfpEvt", &thisPfpEvt );
+    outTreePfp->Branch( "PfpParentCounts", &thisPfpParentCounts );
+    outTreePfp->Branch( "PfpParentX", &thisParentX );
+    outTreePfp->Branch( "PfpParentY", &thisParentY );
+    outTreePfp->Branch( "PfpParentZ", &thisParentZ );
+    outTreePfp->Branch( "PfpPDG", &thisPfpPDG );
+    outTreePfp->Branch( "PfpVtxX", &thisPfpX );
+    outTreePfp->Branch( "PfpVtxY", &thisPfpY );
+    outTreePfp->Branch( "PfpVtxZ", &thisPfpZ );
+    outTreePfp->Branch( "PfpTrkScore", &thisPfpTrkScore );
+    outTreePfp->Branch( "PfpSpsX", &thisPfpSPX );
+    outTreePfp->Branch( "PfpSpsY", &thisPfpSPY );
+    outTreePfp->Branch( "PfpSpsZ", &thisPfpSPZ );
 
     TFile *fileSource = TFile::Open(parameters.m_inputFileName.c_str(), "READ");
     if (!fileSource)
@@ -478,10 +518,161 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
         } // end space point loop
 
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::ProcessEvent(*pPrimaryPandora));
+
+        // SAVE OUTPUT OF PANDORA HERE? (BH)
+        if ( parameters.m_writeOutput ) {
+            std::vector<int> nuEvt;
+            std::vector<int> nuPDG;
+            std::vector<float> nuVtxX;
+            std::vector<float> nuVtxY;
+            std::vector<float> nuVtxZ;
+            std::vector<int> pfpEvt;
+            std::vector<int> pfpNParents;
+            std::vector<float> pfpParentX;
+            std::vector<float> pfpParentY;
+            std::vector<float> pfpParentZ;
+            std::vector<int> pfpPDG;
+            std::vector<float> pfpVtxX;
+            std::vector<float> pfpVtxY;
+            std::vector<float> pfpVtxZ;
+            std::vector<float> pfpTrkScore;
+            std::vector<std::vector<float>> pfpSPX;
+            std::vector<std::vector<float>> pfpSPY;
+            std::vector<std::vector<float>> pfpSPZ;
+            try {
+                // Get the products and fill up the arrays...
+                for ( auto const& listName : parameters.m_outNuLabels ) {
+                    std::cout << listName << std::endl;
+                    // As in the LArPandoraOutput code:
+                    const pandora::PfoList* pSlicePfoList(nullptr);
+                    PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS,!=,PandoraApi::GetPfoList(*pPrimaryPandora, listName, pSlicePfoList));
+                    for ( auto const& pfo : *pSlicePfoList ) {
+                        //unsigned int idxPfo=0; idxPfo < pSlicePfoList->size(); ++idxPfo ) {
+                        WriteSlcToArrays( nuEvt, nuPDG, nuVtxX, nuVtxY, nuVtxZ, *pfo, iEvt );
+                    }
+                }
+
+                for ( auto const& listName : parameters.m_outPfoLabels ) {
+                    std::cout << listName << std::endl;
+                    // As in the LArPandoraOutput code:
+                    const pandora::PfoList* pParticlePfoList(nullptr);
+                    PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS,!=,PandoraApi::GetPfoList(*pPrimaryPandora, listName, pParticlePfoList));
+                    for ( auto const& pfo : *pParticlePfoList ) {
+                        //unsigned int idxPfo=0; idxPfo < pParticlePfoList->size(); ++idxPfo ) {
+                        WritePfoToArrays( pfpEvt, pfpNParents, pfpParentX, pfpParentY, pfpParentZ, pfpPDG, pfpVtxX, pfpVtxY, pfpVtxZ, pfpTrkScore, pfpSPX, pfpSPY, pfpSPZ, *pfo, iEvt );
+                    }
+                }
+
+                // Now fill up our tree
+                for ( unsigned int idxSlc = 0; idxSlc < nuEvt.size(); ++idxSlc ) {
+                    thisNuEvt = nuEvt[idxSlc];
+                    thisNuPDG = nuPDG[idxSlc];
+                    thisNuX = nuVtxX[idxSlc];
+                    thisNuY = nuVtxY[idxSlc];
+                    thisNuZ = nuVtxZ[idxSlc];
+                    outTreeSlc->Fill();
+                }
+                for ( unsigned int idxPfp = 0; idxPfp < pfpEvt.size(); ++idxPfp ) {
+                    thisPfpEvt = pfpEvt[idxPfp];
+                    thisPfpParentCounts = pfpNParents[idxPfp];
+                    thisParentX = pfpParentX[idxPfp];
+                    thisParentY = pfpParentY[idxPfp];
+                    thisParentZ = pfpParentZ[idxPfp];
+                    thisPfpPDG = pfpPDG[idxPfp];
+                    thisPfpX = pfpVtxX[idxPfp];
+                    thisPfpY = pfpVtxY[idxPfp];
+                    thisPfpZ = pfpVtxZ[idxPfp];
+                    thisPfpTrkScore = pfpTrkScore[idxPfp];
+                    thisPfpSPX = pfpSPX[idxPfp];
+                    thisPfpSPY = pfpSPY[idxPfp];
+                    thisPfpSPZ = pfpSPZ[idxPfp];
+                    outTreePfp->Fill();
+                    thisPfpSPX.clear();
+                    thisPfpSPY.clear();
+                    thisPfpSPZ.clear();
+                }
+            }
+            catch (...) {
+                std::cout << "BH BH BH BH (!!!) FAILED TO SAVE OUTPUT FOR EVENT " << iEvt << std::endl;
+            }
+        }
+
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::Reset(*pPrimaryPandora));
     } // end event loop
 
+    // BH: if we want to write the output ROOT file then go ahead and do that...
+    if ( parameters.m_writeOutput ) {
+        TFile *outputSource = TFile::Open(parameters.m_outputFileName.c_str(), "RECREATE");
+        outTreeSlc->Write();
+        outTreePfp->Write();
+        outputSource->Close();
+    }
+
     fileSource->Close();
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
+void WriteSlcToArrays ( std::vector<int> &nuEvtVals, std::vector<int> &nuPDGVals, std::vector<float> &nuVtxXVals, std::vector<float> &nuVtxYVals,
+                        std::vector<float> &nuVtxZVals, const pandora::ParticleFlowObject &pfo, const int idxEvt )
+{
+    // Get the vertices/vertex as needed and anything else to fill these values
+    // push back to the array
+    nuEvtVals.push_back( idxEvt );
+    nuPDGVals.push_back( pfo.GetParticleId() );
+    const Vertex *vtx = pfo.GetVertexList().front();
+    nuVtxXVals.push_back( vtx->GetPosition().GetX() );
+    nuVtxYVals.push_back( vtx->GetPosition().GetY() );
+    nuVtxZVals.push_back( vtx->GetPosition().GetZ() );
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
+void WritePfoToArrays ( std::vector<int> &pfpEvtVals, std::vector<int> &pfpParentCounts,
+                        std::vector<float> &pfpParentXVals, std::vector<float> &pfpParentYVals, std::vector<float> &pfpParentZVals,
+                        std::vector<int> &pfpPDGVals, std::vector<float> &pfpVtxXVals, std::vector<float> &pfpVtxYVals,
+                        std::vector<float> &pfpVtxZVals, std::vector<float> &pfpTrkScoreVals, 
+                        std::vector<std::vector<float>> &pfpSPXVals, std::vector<std::vector<float>> &pfpSPYVals,
+                        std::vector<std::vector<float>> &pfpSPZVals, const pandora::ParticleFlowObject &pfo, const int idxEvt )
+{
+    // Get the vertices/vertex as needed and anything else to fill these values
+    // push back to the array
+    pfpEvtVals.push_back( idxEvt );
+    pfpPDGVals.push_back( pfo.GetParticleId() );
+    pfpParentCounts.push_back( pfo.GetNParentPfos() );
+    if ( pfo.GetNParentPfos() >= 1 ) {
+        const ParticleFlowObject *parentpfo = pfo.GetParentPfoList().front();
+        const Vertex *parentvtx = parentpfo->GetVertexList().front();
+        pfpParentXVals.push_back( parentvtx->GetPosition().GetX() );
+        pfpParentYVals.push_back( parentvtx->GetPosition().GetY() );
+        pfpParentZVals.push_back( parentvtx->GetPosition().GetZ() );
+    }
+    else {
+        pfpParentXVals.push_back( -9999. );
+        pfpParentYVals.push_back( -9999. );
+        pfpParentZVals.push_back( -9999. );
+    }
+    const Vertex *vtx = pfo.GetVertexList().front();
+    pfpVtxXVals.push_back( vtx->GetPosition().GetX() );
+    pfpVtxYVals.push_back( vtx->GetPosition().GetY() );
+    pfpVtxZVals.push_back( vtx->GetPosition().GetZ() );
+    pfpTrkScoreVals.push_back(0.);                           // For now just saving 0, let's fix this later.
+    pfpSPXVals.push_back({});
+    pfpSPYVals.push_back({});
+    pfpSPZVals.push_back({});
+    auto const& clusterlist = pfo.GetClusterList();
+    for ( auto const& cluster : clusterlist ) {
+        auto const& calohitslist = cluster->GetOrderedCaloHitList();
+        // trying to remember why the OrderedCaloHist list is a map of calohits... how many are there? maybe it's plane by plane?
+        std::cout << "BH is asking the size of the OrderedCaloHitList map... it's " << calohitslist.size() << std::endl;
+        for ( auto const& [uintVal, hitlist] : calohitslist ) {
+            for ( auto const& calohit : *hitlist ) {
+                pfpSPXVals.at(pfpSPXVals.size()-1).push_back( calohit->GetPositionVector().GetX() );
+                pfpSPYVals.at(pfpSPXVals.size()-1).push_back( calohit->GetPositionVector().GetY() );
+                pfpSPZVals.at(pfpSPXVals.size()-1).push_back( calohit->GetPositionVector().GetZ() );
+            }
+        }
+    }
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
@@ -1774,7 +1965,7 @@ bool ParseCommandLine(int argc, char *argv[], Parameters &parameters)
     std::string geomVolName("");
     std::string sensDetName("");
 
-    while ((cOpt = getopt(argc, argv, "r:i:e:k:f:g:t:v:d:n:s:j:w:m:c:MpNh")) != -1)
+    while ((cOpt = getopt(argc, argv, "r:i:e:o:A:B:k:f:g:t:v:d:n:s:j:w:m:c:MpNh")) != -1)
     {
         switch (cOpt)
         {
@@ -1786,6 +1977,16 @@ bool ParseCommandLine(int argc, char *argv[], Parameters &parameters)
                 break;
             case 'e':
                 parameters.m_inputFileName = optarg;
+                break;
+            case 'o':
+                parameters.m_outputFileName = optarg;
+                parameters.m_writeOutput = true;
+                break;
+            case 'A':
+                parameters.m_outNuLabels.push_back(optarg);
+                break;
+            case 'B':
+                parameters.m_outPfoLabels.push_back(optarg);
                 break;
             case 'k':
                 inputTreeName = optarg;
@@ -1860,6 +2061,9 @@ bool PrintOptions()
               << "    -i Settings            (required) [Run xml file for setting up the Pandora algorithms]" << std::endl
               << "    -e EventsFile          (required) [Events input data ROOT file]" << std::endl
               << "    -g GeometryFile        (required) [ROOT file containing the TGeoManager geometry]" << std::endl
+              << "    -o OutputFile          (optional) [Output data ROOT file]" << std::endl
+              << "    -A Neutrino Label      (optional) [List of Neutrino candidates to get]" << std::endl
+              << "    -B PFO Label           (optional) [List of PFParticles to get]" << std::endl
               << "    -f DataFormat          (optional) [SP (SpacePoint default), SPMC (SpacePoint MC), EDepSim (rooTracker) or SED (LArSoft-like)]"
               << std::endl
               << "    -k EventsTreeName      (optional) [Name of the input events ROOT TTree (default = events)]" << std::endl

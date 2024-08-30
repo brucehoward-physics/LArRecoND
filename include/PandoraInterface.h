@@ -10,6 +10,12 @@
 
 #include "Pandora/PandoraInputTypes.h"
 
+// Added BH
+#include "Objects/ParticleFlowObject.h"
+#include "Objects/Vertex.h"
+#include "Objects/CaloHit.h"
+#include "Objects/Cluster.h"
+
 #ifdef USE_EDEPSIM
 #include "TG4Event.h"
 #endif
@@ -65,6 +71,12 @@ public:
                                  ///< and/or geometry information
     std::string m_inputTreeName; ///< The optional name of the event TTree
 
+    // Things controlling OUPTUTS (BH)
+    std::string m_outputFileName; ///< The path to the output file containing reco (& true?) info
+    bool m_writeOutput;            ///< Whether or not we'll create an output file
+    std::vector<std::string> m_outNuLabels; ///< Label(s) of Neutrino PFPs to get (e.g. Neutrino3D)
+    std::vector<std::string> m_outPfoLabels; ///< Label(s) of PFParticles/PFObjects to get (e.g. TrackParticles3D, ShowerParticles3D)
+
     std::string m_geomFileName;    ///< The ROOT file name containing the TGeoManager info
     std::string m_geomManagerName; ///< The name of the TGeoManager
 
@@ -109,6 +121,10 @@ inline Parameters::Parameters() :
     m_settingsFile(""),
     m_inputFileName(""),
     m_inputTreeName(""),
+    m_outputFileName(""),
+    m_writeOutput(false),
+    m_outNuLabels({}),
+    m_outPfoLabels({}),
     m_geomFileName(""),
     m_geomManagerName(""),
     m_geometryVolName(""),
@@ -195,6 +211,22 @@ void ProcessEvents(const Parameters &parameters, const pandora::Pandora *const p
  *  @param  pPrimaryPandora The address of the primary pandora instance
  */
 void ProcessSPEvents(const Parameters &parameters, const pandora::Pandora *const pPrimaryPandora, const LArNDGeomSimple &geom);
+
+/**
+ *  @brief  A helper function for saving event output in a ROOT TTree if using the SP format and the correct options to write output. This deals with slice PFOs.
+ */
+void WriteSlcToArrays ( std::vector<int> &nuEvtVals, std::vector<int> &nuPDGVals, std::vector<float> &nuVtxXVals, std::vector<float> &nuVtxYVals,
+                        std::vector<float> &nuVtxZVals, const pandora::ParticleFlowObject &pfo, const int idxEvt );
+
+/**
+ *  @brief  A helper function for saving event output in a ROOT TTree if using the SP format and the correct options to write output. This deals with neutrino PFOs.
+ */
+void WritePfoToArrays ( std::vector<int> &pfpEvtVals, std::vector<int> &pfpParentCounts,
+                        std::vector<float> &pfpParentXVals, std::vector<float> &pfpParentYVals, std::vector<float> &pfpParentZVals,
+                        std::vector<int> &pfpPDGVals, std::vector<float> &pfpVtxXVals, std::vector<float> &pfpVtxYVals,
+                        std::vector<float> &pfpVtxZVals, std::vector<float> &pfpTrkScoreVals, 
+                        std::vector<std::vector<float>> &pfpSPXVals, std::vector<std::vector<float>> &pfpSPYVals,
+                        std::vector<std::vector<float>> &pfpSPZVals, const pandora::ParticleFlowObject &pfo, const int idxEvt );
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
