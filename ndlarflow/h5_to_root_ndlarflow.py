@@ -26,7 +26,7 @@ def main(argv=None):
     # set input files to be loaded
     datapath=""
     files = [
-"/dune/data/users/rdiurba/ndlarflow_RHC_mar2023/MiniRun4_1E19_RHC.larnd.00123.TESTFILE.proto_nd_flow.h5"]
+"/pnfs/dune/persistent/users/noeroy/prod/MiniRun6_1E19_RHC/MiniRun6_1E19_RHC.flow/FLOW/0000000/MiniRun6_1E19_RHC.flow.0000055.FLOW.hdf5"]
 
 
     if (len(sys.argv)>1):
@@ -36,6 +36,10 @@ def main(argv=None):
     if (len(sys.argv)>2):
         if (int(sys.argv[2])==1):
             useData=True
+    output="/exp/dune/data/users/rdiurba/flowToROOT"
+    if (len(sys.argv)>3):
+        if (str(sys.argv[3])!=None):
+            output=str(sys.argv[3])
     fnum=0;
     # load files in list
     for fname in files:
@@ -48,11 +52,13 @@ def main(argv=None):
         events    = f['charge/events/data']
 
         # fill tree
+        outfile=fname.rsplit("/",1)[-1]
+        outFileName = output+"/"+outfile+"_hits.root"
 
-        outFileName = fname[:-3] + 'Hits.root'
+
         #print('output file : ', '' + outFileName )
 
-        output_file = ROOT.TFile((outFileName), "RECREATE")
+        output_file = ROOT.TFile((outFileName),"RECREATE")
         output_tree = ROOT.TTree("events", "events")
 
         
@@ -61,6 +67,7 @@ def main(argv=None):
         eventID              = array('i',[0])           # event ID [-]
         event_start_t        = array('i',[0])           # event timestamp start [UNITS?]
         event_end_t          = array('i',[0])           # event timestamp end [UNITS?]       
+        event_unix_ts = array("l",[0])
         subrun=array("i",[0])
         run= array("i",[0])
         
@@ -96,6 +103,7 @@ def main(argv=None):
         mcp_pz=ROOT.std.vector("float")();
         mcp_id=ROOT.std.vector("int")();
         mcp_nuid=ROOT.std.vector("int")();
+        mcp_vertexID=ROOT.std.vector("int")();
         mcp_pdg=ROOT.std.vector("int")();
         mcp_mother=ROOT.std.vector("int")();
         mcp_energy=ROOT.std.vector("float")();
@@ -120,6 +128,7 @@ def main(argv=None):
         # stetup tree for output       
         output_tree.Branch("event"           ,eventID           ,"eventID/I")
         output_tree.Branch("subrun"           ,subrun           ,"subrun/I")
+        output_tree.Branch("unix_ts",event_unix_ts,"unix_ts/L");
         output_tree.Branch("run"           ,run           ,"run/I")
         output_tree.Branch("event_start_t"     ,event_start_t     ,"event_start_t/I")     # 32 bit timestamp (2^32-1 = 2.147483647e9)
         output_tree.Branch("event_end_t"       ,event_end_t       ,"event_end_t/I")       # 32 bit timestamp (2^32-1 = 2.147483647e9)
@@ -155,6 +164,7 @@ def main(argv=None):
         output_tree.Branch("mcp_energy",mcp_energy)
         output_tree.Branch("mcp_pdg",mcp_pdg)
         output_tree.Branch("mcp_nuid",mcp_nuid)
+       
         output_tree.Branch("mcp_id",mcp_id)
         output_tree.Branch("mcp_px",mcp_px)
         output_tree.Branch("mcp_py",mcp_py)
@@ -286,7 +296,7 @@ def main(argv=None):
             eventID[0]           = event['id'] 
             event_start_t[0] =int(event["ts_start"])
             event_end_t[0]=int(event["ts_end"])
-
+            event_unix_ts[0]=int(event["unix_ts"])
             # grab event hit list and variables
             hits_z=np.ma.getdata(event_calib_final_hits["z"][0])
             hits_y=np.ma.getdata(event_calib_final_hits["y"][0])
@@ -407,7 +417,7 @@ def main(argv=None):
 def find_tracks_in_calib_hits(hit_num, flow_out, typ="final"):
     final_hit_backtrack=flow_out["charge/calib_"+str(typ)+"_hits","mc_truth/calib_"+str(typ)+"_hit_backtrack",hit_num][0]
     final_hit_backtrackFull=flow_out["charge/calib_"+str(typ)+"_hits","mc_truth/calib_"+str(typ)+"_hit_backtrack",hit_num]
-    segIDsFromHits=final_hit_backtrack["segment_id"][0]
+    segIDsFromHits=final_hit_backtrack["segment_ids"][0]
     fracFromHits=final_hit_backtrack["fraction"][0]
     track_contr = []
     trackIndex_tot=[]
@@ -574,9 +584,9 @@ def find_all_truth_in_spill(spillID, flow_out):
         nuVertexZ.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["vertex"][2])
         nuVertexE.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["Enu"]*0.001)
         nuPDG.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["nu_pdg"])
-        nuPx.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["nu_4mom"][0])
-        nuPy.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["nu_4mom"][1])
-        nuPz.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["nu_4mom"][2])
+        nuPx.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["nu_4mom"][0]*0.001)
+        nuPy.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["nu_4mom"][1]*0.01)
+        nuPz.append(flow_out["/mc_truth/interactions/data"][vertex_indices]["nu_4mom"][2]*0.01)
         code,cc=get_nuance_code(vertex_indices,flow_out)
         nuCode.append(code)
         nuCC.append(cc)
