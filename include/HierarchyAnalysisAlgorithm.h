@@ -128,6 +128,10 @@ private:
     unsigned int m_minRecoGoodViews;   ///< Minimum number of reconstructed primary good views
     bool m_removeRecoNeutrons;         ///< Whether to remove reconstructed neutrons and their downstream particles
     bool m_selectRecoHits;             ///< Whether to select reco hits that overlap with the MC particle hits
+
+    int m_minTrajectoryPoints;         ///< Min Trajectory Points
+    int m_slidingFitHalfWindow;        ///< Sliding fit half window as in Pandora Track Creation
+    float m_pixelPitch;                ///< Spacing between pixels, for "length scale for binning hits, performing linear fits"
 };
 
 } // namespace lar_content

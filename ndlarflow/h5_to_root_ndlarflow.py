@@ -28,7 +28,6 @@ def main(argv=None):
     files = [
 "/pnfs/dune/persistent/users/noeroy/prod/MiniRun6_1E19_RHC/MiniRun6_1E19_RHC.flow/FLOW/0000000/MiniRun6_1E19_RHC.flow.0000055.FLOW.hdf5"]
 
-
     if (len(sys.argv)>1):
         if (sys.argv[1]!=None):
             files=[str(sys.argv[1])]
@@ -36,7 +35,8 @@ def main(argv=None):
     if (len(sys.argv)>2):
         if (int(sys.argv[2])==1):
             useData=True
-    output="/exp/dune/data/users/rdiurba/flowToROOT"
+    username=os.getenv("USER")
+    output="/exp/dune/data/users/"+username+"/flowToROOT"
     if (len(sys.argv)>3):
         if (str(sys.argv[3])!=None):
             output=str(sys.argv[3])
