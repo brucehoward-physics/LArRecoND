@@ -176,6 +176,11 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     // Long integers for the MC IDs: vertex, unique and local trajectories
     std::vector<long> mcNuIdVect, mcIdVect, mcLocalIdVect;
 
+    // BH: vector of vector of hits for the hit positions
+    std::vector< std::vector<float> > sliceHitsX;
+    std::vector< std::vector<float> > sliceHitsY;
+    std::vector< std::vector<float> > sliceHitsZ;
+
     // Get the list of root MCParticles for the MC truth matching
     MCParticleList rootMCParticles;
     matchInfo.GetRootMCParticles(rootMCParticles);
@@ -190,6 +195,27 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     {
         // Slice id = root PFO number
         ++sliceId;
+
+        // BH: Get the hits for the PFOs associated with this slice
+        //     And then put them into a separate tree
+        // As in BuildSlice from LArPandoraOutput
+        pandora::PfoList pfosInSlice;
+        LArPfoHelper::GetAllConnectedPfos(pRoot, pfosInSlice);
+        pfosInSlice.sort(LArPfoHelper::SortByNHits)
+        pandora::CaloHitList hits;
+        for ( const pandora::ParticleFlowObject* const pPfo : pfosInSlice ) {
+            LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_3D, hits);
+            LArPfoHelper::GetIsolatedCaloHits(pPfo, pandora::TPC_3D, hits);
+        }
+        FloatVector hitPosX, hitPosY, hitPosZ;
+        for ( const pandora::CaloHit* const pCaloHit : hits ) {
+            hitPosX.emplace_back( pCaloHit->GetPositionVector().GetX() );
+            hitPosY.emplace_back( pCaloHit->GetPositionVector().GetY() );
+            hitPosZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
+        }
+        sliceHitsX.emplace_back(hitPosX);
+        sliceHitsY.emplace_back(hitPosY);
+        sliceHitsZ.emplace_back(hitPosZ);
 
         // Get (first) root vertex
         const VertexList &rootVertices{pRoot->GetVertexList()};
@@ -418,6 +444,10 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPx", &mcNuPxVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPy", &mcNuPyVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPz", &mcNuPzVect));
+    // BH:
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsX", &sliceHitsX));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsY", &sliceHitsY));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsZ", &sliceHitsZ));
 
     PANDORA_MONITORING_API(FillTree(this->GetPandora(), m_analysisTreeName.c_str()));
 }
