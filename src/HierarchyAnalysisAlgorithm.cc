@@ -201,7 +201,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
         // As in BuildSlice from LArPandoraOutput
         pandora::PfoList pfosInSlice;
         LArPfoHelper::GetAllConnectedPfos(pRoot, pfosInSlice);
-        pfosInSlice.sort(LArPfoHelper::SortByNHits)
+        pfosInSlice.sort(LArPfoHelper::SortByNHits);
         pandora::CaloHitList hits;
         for ( const pandora::ParticleFlowObject* const pPfo : pfosInSlice ) {
             LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_3D, hits);
