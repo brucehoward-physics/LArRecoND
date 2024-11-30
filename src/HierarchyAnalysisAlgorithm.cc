@@ -177,9 +177,10 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     std::vector<long> mcNuIdVect, mcIdVect, mcLocalIdVect;
 
     // BH: vector of vector of hits for the hit positions
-    std::vector< std::vector<float> > sliceHitsX;
-    std::vector< std::vector<float> > sliceHitsY;
-    std::vector< std::vector<float> > sliceHitsZ;
+    IntVector sliceHitsSlice;
+    FloatVector sliceHitsX;
+    FloatVector sliceHitsY;
+    FloatVector sliceHitsZ;
 
     // Get the list of root MCParticles for the MC truth matching
     MCParticleList rootMCParticles;
@@ -209,13 +210,11 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
         }
         FloatVector hitPosX, hitPosY, hitPosZ;
         for ( const pandora::CaloHit* const pCaloHit : hits ) {
-            hitPosX.emplace_back( pCaloHit->GetPositionVector().GetX() );
-            hitPosY.emplace_back( pCaloHit->GetPositionVector().GetY() );
-            hitPosZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
+            sliceHitsSlice.emplace_back( sliceId );
+            sliceHitsX.emplace_back( pCaloHit->GetPositionVector().GetX() );
+            sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
+            sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
         }
-        sliceHitsX.emplace_back(hitPosX);
-        sliceHitsY.emplace_back(hitPosY);
-        sliceHitsZ.emplace_back(hitPosZ);
 
         // Get (first) root vertex
         const VertexList &rootVertices{pRoot->GetVertexList()};
@@ -445,6 +444,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPy", &mcNuPyVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPz", &mcNuPzVect));
     // BH:
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsSlice", &sliceHitsSlice));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsX", &sliceHitsX));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsY", &sliceHitsY));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsZ", &sliceHitsZ));
