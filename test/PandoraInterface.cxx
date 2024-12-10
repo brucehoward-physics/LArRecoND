@@ -56,11 +56,17 @@
 #include <string>
 #include <vector>
 
+// Added by BH to do some time tracking:
+// see https://en.cppreference.com/w/cpp/chrono/c/time
+#include<ctime>
+
 using namespace pandora;
 using namespace lar_nd_reco;
 
 int main(int argc, char *argv[])
 {
+    std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Launching Pandora Interface" << std::endl;
+
     int errorNo(0);
     const Pandora *pPrimaryPandora(nullptr);
 
@@ -70,6 +76,9 @@ int main(int argc, char *argv[])
 
         if (!ParseCommandLine(argc, argv, parameters))
             return 1;
+
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Command Line Args Parsed" << std::endl;
+
 
 #ifdef MONITORING
         TApplication *pTApplication = new TApplication("LArReco", &argc, argv);
@@ -90,16 +99,27 @@ int main(int argc, char *argv[])
         if (parameters.m_use3D)
             PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, LArNDContent::RegisterAlgorithms(*pPrimaryPandora));
 
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Primary Pandora Registered" << std::endl;
+
         MultiPandoraApi::AddPrimaryPandoraInstance(pPrimaryPandora);
+
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Primary Pandora Instance Added" << std::endl;
 
         LArNDGeomSimple simpleGeom;
         CreateGeometry(parameters, pPrimaryPandora, simpleGeom);
+
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Geometry Created" << std::endl;
+
         ProcessExternalParameters(parameters, pPrimaryPandora);
+
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " External Parameters Processed" << std::endl;
+
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::SetPseudoLayerPlugin(*pPrimaryPandora, new lar_content::LArPseudoLayerPlugin));
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=,
             PandoraApi::SetLArTransformationPlugin(*pPrimaryPandora, new lar_content::LArRotationalTransformationPlugin));
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::ReadSettings(*pPrimaryPandora, parameters.m_settingsFile));
 
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " NOW Starting to Process Events" << std::endl;
         ProcessEvents(parameters, pPrimaryPandora, simpleGeom);
     }
     catch (const StatusCodeException &statusCodeException)
@@ -336,10 +356,14 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
 
     for (int iEvt = startEvt; iEvt < endEvt; iEvt++)
     {
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Now Processing Event " << iEvt << std::endl;
+
         if (parameters.m_shouldDisplayEventNumber)
             std::cout << std::endl << "   PROCESSING EVENT: " << iEvt << std::endl << std::endl;
 
         ndsptree->GetEntry(iEvt);
+
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Retrieved Event From Tree" << std::endl;
 
         // Some truth information first
         if (parameters.m_dataFormat == Parameters::LArNDFormat::SPMC)
@@ -470,11 +494,19 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
 
         } // end space point loop
 
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Done making the CaloHits" << std::endl;
+
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::ProcessEvent(*pPrimaryPandora));
+
+        std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Done Processing THIS Event" << std::endl;
+
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraApi::Reset(*pPrimaryPandora));
     } // end event loop
 
     fileSource->Close();
+
+    std::cout << "TIMER_TIMER_TIMER " << std::time(nullptr) << " Done Processing Events." << std::endl;
+
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------
