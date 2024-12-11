@@ -17,6 +17,10 @@
 
 #include <unordered_map>
 
+// Added by BH to do some time tracking:
+// see https://en.cppreference.com/w/cpp/chrono/c/time
+#include<ctime>
+
 namespace lar_content
 {
 
