@@ -26,7 +26,7 @@ namespace lar_content
   StatusCode CheckTimeAlgorithm::Run()
   {
     std::cout << "////// Check Time Algorithm //////" << std::endl;
-    std::cout << "TIMER_TIMER_TIMER_alg " << std::time(nullptr) << m_auxiliaryInfo << std::endl;
+    std::cout << "TIMER_TIMER_TIMER_alg " << std::time(nullptr) << " " << m_auxiliaryInfo << std::endl;
 
     return STATUS_CODE_SUCCESS;
   }
