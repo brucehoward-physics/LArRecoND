@@ -1,0 +1,312 @@
+<pandora>
+    <!-- GLOBAL SETTINGS -->
+    <IsMonitoringEnabled>false</IsMonitoringEnabled>
+    <ShouldDisplayAlgorithmInfo>true</ShouldDisplayAlgorithmInfo>
+    <SingleHitTypeClusteringMode>true</SingleHitTypeClusteringMode>
+
+    <!-- ALGORITHM SETTINGS -->
+    <algorithm type = "LArPreProcessingThreeD">
+        <OutputCaloHitListNameU>CaloHitListU</OutputCaloHitListNameU>
+        <OutputCaloHitListNameV>CaloHitListV</OutputCaloHitListNameV>
+        <OutputCaloHitListNameW>CaloHitListW</OutputCaloHitListNameW>
+        <OutputCaloHitListName3D>CaloHitList3D</OutputCaloHitListName3D>
+        <FilteredCaloHitListName>CaloHitList2D</FilteredCaloHitListName>
+        <CurrentCaloHitListReplacement>CaloHitList2D</CurrentCaloHitListReplacement>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_LArPreProcessing</AuxInfo></algorithm> <!-- BH -->
+
+    <!-- Use 3D hits to make the 2D clusters -->
+    <algorithm type = "LArSimpleClusterCreationThreeD">
+        <InputCaloHitListNameU>CaloHitListU</InputCaloHitListNameU>
+        <InputCaloHitListNameV>CaloHitListV</InputCaloHitListNameV>
+        <InputCaloHitListNameW>CaloHitListW</InputCaloHitListNameW>
+        <InputCaloHitListName3D>CaloHitList3D</InputCaloHitListName3D>
+        <OutputClusterListNameU>ClustersU</OutputClusterListNameU>
+        <OutputClusterListNameV>ClustersV</OutputClusterListNameV>
+        <OutputClusterListNameW>ClustersW</OutputClusterListNameW>
+        <OutputClusterListName3D>Clusters3D</OutputClusterListName3D>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_SimpleClusterCreation3d</AuxInfo></algorithm> <!-- BH -->
+
+    <algorithm type = "LArReplaceHitAndClusterLists">
+        <InputClusterListName>Clusters3D</InputClusterListName>
+        <InputCaloHitListName>CaloHitList3D</InputCaloHitListName>
+    </algorithm>
+    <algorithm type = "LArLayerSplitting"/>
+    <algorithm type = "LArLongitudinalAssociation"/>
+    <algorithm type = "LArTransverseAssociation"/>
+    <algorithm type = "LArLongitudinalExtension"/>
+    <algorithm type = "LArTransverseExtension"/>
+    <algorithm type = "LArCrossGapsAssociation"/>
+    <algorithm type = "LArCrossGapsExtension"/>
+    <algorithm type = "LArOvershootSplitting"/>
+    <algorithm type = "LArBranchSplitting"/>
+    <algorithm type = "LArKinkSplitting"/>
+    <algorithm type = "LArTrackConsolidation">
+        <algorithm type = "LArSimpleClusterCreation" description = "ClusterRebuilding"/>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_ReplaceHitAndClusterLists</AuxInfo></algorithm> <!-- BH -->
+
+    <algorithm type = "LArCutClusterCharacterisationThreeD">
+        <InputClusterListNames>Clusters3D</InputClusterListNames>
+        <PathLengthRatioCut>5.0</PathLengthRatioCut>
+        <OverwriteExistingId>true</OverwriteExistingId>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_3dCutClusterChar</AuxInfo></algorithm> <!-- BH -->
+
+    <algorithm type = "LArMergeClearTracksThreeD">
+        <InputClusterListName>Clusters3D</InputClusterListName>
+        <SlidingFitWindow>10</SlidingFitWindow>
+        <MaxGapLengthCut>25.0</MaxGapLengthCut>
+        <MaxGapTransverseCut>3.0</MaxGapTransverseCut>
+        <MinCosThetaCut>0.96</MinCosThetaCut>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_MergeClearTracks3d</AuxInfo></algorithm> <!-- BH -->
+
+<!--
+    <algorithm type = "LArCandidateVertexCreationThreeD">
+        <InputClusterListName>Clusters3D</InputClusterListName>
+        <OutputVertexListName>CandidateVertices3D</OutputVertexListName>
+        <ReplaceCurrentVertexList>true</ReplaceCurrentVertexList>
+        <EnableCrossingCandidates>false</EnableCrossingCandidates>
+        <ReducedCandidates>true</ReducedCandidates>
+    </algorithm>
+-->
+    <algorithm type = "LArShowerGrowing">
+        <InputClusterListNames>Clusters3D</InputClusterListNames>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_ShowerGrowing</AuxInfo></algorithm> <!-- BH -->
+
+    <algorithm type = "LArCreateTwoDClustersFromThreeD">
+        <InputCaloHitListNameU>CaloHitListU</InputCaloHitListNameU>
+        <InputCaloHitListNameV>CaloHitListV</InputCaloHitListNameV>
+        <InputCaloHitListNameW>CaloHitListW</InputCaloHitListNameW>
+        <InputClusterListName3D>Clusters3D</InputClusterListName3D>
+        <OutputClusterListNameU>ClustersU</OutputClusterListNameU>
+        <OutputClusterListNameV>ClustersV</OutputClusterListNameV>
+        <OutputClusterListNameW>ClustersW</OutputClusterListNameW>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_2dClustersFrom3d</AuxInfo></algorithm> <!-- BH -->
+
+    <!-- We have made the 2D clusters, so remove 3D for now to make hits available later -->
+    <algorithm type = "LArListDeletion" description = "3DClusterDeletion">
+        <ClusterListNames>Clusters3D</ClusterListNames>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_3dClusterDeletion</AuxInfo></algorithm> <!-- BH -->
+
+    <!-- ThreeDTrackAlgorithms -->
+    <algorithm type = "LArThreeDTransverseTracks">
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+        <TrackTools>
+            <tool type = "LArClearTracks"/>
+            <tool type = "LArLongTracks"/>
+            <tool type = "LArOvershootTracks"><SplitMode>true</SplitMode></tool>
+            <tool type = "LArUndershootTracks"><SplitMode>true</SplitMode></tool>
+            <tool type = "LArOvershootTracks"><SplitMode>false</SplitMode></tool>
+            <tool type = "LArUndershootTracks"><SplitMode>false</SplitMode></tool>
+            <tool type = "LArMissingTrackSegment"/>
+            <tool type = "LArTrackSplitting"/>
+            <tool type = "LArLongTracks"><MinMatchedFraction>0.75</MinMatchedFraction><MinXOverlapFraction>0.75</MinXOverlapFraction></tool>
+            <tool type = "LArTracksCrossingGaps"><MinMatchedFraction>0.75</MinMatchedFraction><MinXOverlapFraction>0.75</MinXOverlapFraction></tool>
+            <tool type = "LArMissingTrack"/>
+        </TrackTools>
+    </algorithm>
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_3dTransverseTracks</AuxInfo></algorithm> <!-- BH -->
+    <algorithm type = "LArThreeDLongitudinalTracks">
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+        <TrackTools>
+            <tool type = "LArClearLongitudinalTracks"/>
+            <tool type = "LArMatchedEndPoints"/>
+        </TrackTools>
+    </algorithm>
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_3dLongitudinalTracks</AuxInfo></algorithm> <!-- BH -->
+    <algorithm type = "LArThreeDTrackFragments">
+        <MinClusterLength>5.</MinClusterLength>
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+        <TrackTools>
+            <tool type = "LArClearTrackFragments"/>
+        </TrackTools>
+        <algorithm type = "LArSimpleClusterCreation" description = "ClusterRebuilding"/>
+    </algorithm>
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_3dTrackFragments</AuxInfo></algorithm> <!-- BH -->
+
+    <!-- ThreeDShowerAlgorithms -->
+    <algorithm type = "LArCutPfoCharacterisation">
+        <TrackPfoListName>TrackParticles3D</TrackPfoListName>
+        <ShowerPfoListName>ShowerParticles3D</ShowerPfoListName>
+        <UseThreeDInformation>false</UseThreeDInformation>
+        <SlidingFitWindow>10</SlidingFitWindow>
+        <ShowerWidthRatioCut>2.0</ShowerWidthRatioCut>
+    </algorithm>
+
+    <algorithm type = "LArListDeletion">
+        <PfoListNames>ShowerParticles3D</PfoListNames>
+    </algorithm>
+    <algorithm type = "LArCutClusterCharacterisation">
+        <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+        <OverwriteExistingId>true</OverwriteExistingId>
+    </algorithm>
+
+    <algorithm type = "LArShowerGrowing">
+        <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+    </algorithm>
+
+    <algorithm type = "LArThreeDShowers">
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputPfoListName>ShowerParticles3D</OutputPfoListName>
+        <ShowerTools>
+            <tool type = "LArClearShowers"/>
+            <tool type = "LArSplitShowers"/>
+            <tool type = "LArSimpleShowers"/>
+        </ShowerTools>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_3dShowerAlgs</AuxInfo></algorithm> <!-- BH -->
+
+    <!-- Repeat ThreeDTrackAlgorithms -->
+    <algorithm type = "LArThreeDTransverseTracks">
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+        <TrackTools>
+            <tool type = "LArClearTracks"/>
+            <tool type = "LArLongTracks"/>
+            <tool type = "LArOvershootTracks"><SplitMode>true</SplitMode></tool>
+            <tool type = "LArUndershootTracks"><SplitMode>true</SplitMode></tool>
+            <tool type = "LArOvershootTracks"><SplitMode>false</SplitMode></tool>
+            <tool type = "LArUndershootTracks"><SplitMode>false</SplitMode></tool>
+            <tool type = "LArMissingTrackSegment"/>
+            <tool type = "LArTrackSplitting"/>
+            <tool type = "LArLongTracks"><MinMatchedFraction>0.75</MinMatchedFraction><MinXOverlapFraction>0.75</MinXOverlapFraction></tool>
+            <tool type = "LArTracksCrossingGaps"><MinMatchedFraction>0.75</MinMatchedFraction><MinXOverlapFraction>0.75</MinXOverlapFraction></tool>
+            <tool type = "LArMissingTrack"/>
+        </TrackTools>
+    </algorithm>
+    <algorithm type = "LArThreeDLongitudinalTracks">
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+        <TrackTools>
+            <tool type = "LArClearLongitudinalTracks"/>
+            <tool type = "LArMatchedEndPoints"/>
+        </TrackTools>
+    </algorithm>
+    <algorithm type = "LArThreeDTrackFragments">
+        <MinClusterLength>5.</MinClusterLength>
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+        <TrackTools>
+            <tool type = "LArClearTrackFragments"/>
+        </TrackTools>
+        <algorithm type = "LArSimpleClusterCreation" description = "ClusterRebuilding"/>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_Repeat3dTrackAlgs</AuxInfo></algorithm> <!-- BH -->
+
+    <!-- ThreeDRecoveryAlgorithms -->
+    <algorithm type = "LArVertexBasedPfoRecovery">
+        <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+    </algorithm>
+    <algorithm type = "LArParticleRecovery">
+        <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+    </algorithm>
+    <algorithm type = "LArParticleRecovery">
+        <InputClusterListNames>ClustersU ClustersV ClustersW</InputClusterListNames>
+        <OutputPfoListName>TrackParticles3D</OutputPfoListName>
+        <VertexClusterMode>true</VertexClusterMode>
+        <MinXOverlapFraction>0.5</MinXOverlapFraction>
+        <MinClusterCaloHits>5</MinClusterCaloHits>
+        <MinClusterLength>1.</MinClusterLength>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_3dRecoveryAlgs</AuxInfo></algorithm> <!-- BH -->
+
+    <!-- ThreeDHitAlgorithms -->
+    <algorithm type = "LArCutPfoCharacterisation">
+        <TrackPfoListName>TrackParticles3D</TrackPfoListName>
+        <ShowerPfoListName>ShowerParticles3D</ShowerPfoListName>
+        <UseThreeDInformation>false</UseThreeDInformation>
+        <PostBranchAddition>true</PostBranchAddition>
+        <SlidingFitWindow>10</SlidingFitWindow>
+        <ShowerWidthRatioCut>2.0</ShowerWidthRatioCut>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_CutPfoChar</AuxInfo></algorithm> <!-- BH -->
+
+    <algorithm type = "LArPfoThreeDHitAssignment">
+        <InputCaloHitList3DName>CaloHitList3D</InputCaloHitList3DName>
+        <InputPfoListNames>TrackParticles3D ShowerParticles3D</InputPfoListNames>
+        <OutputClusterListNames>TrackClusters3D ShowerClusters3D</OutputClusterListNames>
+        <MaxHitSeparation>10</MaxHitSeparation>
+        <MinLocalHits>15</MinLocalHits>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_Pfo3dHitAssignment</AuxInfo></algorithm> <!-- BH -->
+
+<!-- commented out by BH to not run the Pandora TEve Viewer
+    <algorithm type = "LArVisualMonitoring">
+        <PfoListNames>TrackParticles3D ShowerParticles3D</PfoListNames>
+        <ShowDetector>true</ShowDetector>
+    </algorithm>
+-->
+
+    <!-- SliceCreation -->
+    <algorithm type = "LArSlicingThreeD">
+        <InputCaloHitListNameU>CaloHitListU</InputCaloHitListNameU>
+        <InputCaloHitListNameV>CaloHitListV</InputCaloHitListNameV>
+        <InputCaloHitListNameW>CaloHitListW</InputCaloHitListNameW>
+        <InputCaloHitListName3D>CaloHitList3D</InputCaloHitListName3D>
+        <InputClusterListNameU>ClustersU</InputClusterListNameU>
+        <InputClusterListNameV>ClustersV</InputClusterListNameV>
+        <InputClusterListNameW>ClustersW</InputClusterListNameW>
+        <OutputClusterListName>SliceClusters</OutputClusterListName>
+        <OutputPfoListName>SliceParticles</OutputPfoListName>
+        <tool type = "LArEventSlicingThreeD" description = "SliceCreation">
+            <TrackPfoListName>TrackParticles3D</TrackPfoListName>
+            <ShowerPfoListName>ShowerParticles3D</ShowerPfoListName>
+            <!-- Need to make the slicing much harsher than the FD -->
+            <MaxHitSeparation>10</MaxHitSeparation>
+            <MaxConeLength>50.0</MaxConeLength>
+            <ConeLengthMultiplier>3</ConeLengthMultiplier>
+            <MaxInterceptDistance>30.0</MaxInterceptDistance>
+        </tool>
+        <algorithm type = "LArListDeletion" description = "SlicingListDeletion">
+            <PfoListNames>TrackParticles3D ShowerParticles3D</PfoListNames>
+            <ClusterListNames>ClustersU ClustersV ClustersW TrackClusters3D ShowerClusters3D</ClusterListNames>
+<!--            <VertexListNames>CandidateVertices3D</VertexListNames> -->
+        </algorithm>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_SliceCreation</AuxInfo></algorithm> <!-- BH -->
+
+    <algorithm type = "LArListChanging">
+        <PfoListName>SliceParticles</PfoListName>
+    </algorithm>
+
+    <algorithm type = "LArCheckTime"><AuxInfo>SlicingXML_EndPostProcAlg</AuxInfo></algorithm> <!-- BH -->
+</pandora>

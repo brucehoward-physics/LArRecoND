@@ -26,6 +26,8 @@
 #include "SimpleClusterCreationThreeDAlgorithm.h"
 #include "SlicingThreeDAlgorithm.h"
 
+#include "CheckTimeAlgorithm.h"
+
 // clang-format off
 #define LAR_ND_ALGORITHM_LIST(d)                                                                                                   \
     d("LArMasterThreeD",                        MasterThreeDAlgorithm)                                                             \
@@ -38,6 +40,7 @@
     d("LArPreProcessingThreeD",                 PreProcessingThreeDAlgorithm)                                                      \
     d("LArCutClusterCharacterisationThreeD",    CutClusterCharacterisationThreeDAlgorithm)                                         \
     d("LArCandidateVertexCreationThreeD",       CandidateVertexCreationThreeDAlgorithm)                                            \
+    d("LArCheckTime",                           CheckTimeAlgorithm)                                            \
     d("LArHierarchyAnalysis",                   HierarchyAnalysisAlgorithm)
 
 #define LAR_ND_ALGORITHM_TOOL_LIST(d)                                                                                              \
