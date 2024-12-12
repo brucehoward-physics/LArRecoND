@@ -1,12 +1,7 @@
 # Adapted for 2x2 conversion for Pandora by Richard Diurba
 # Code based on Bern Module data root file conversion by Salvatore Davide Porzio and Saba Parsa
-<<<<<<< HEAD
-# python h5_to_root_ndlarflow.py filename  data outputdir
-# Example to run on data: python h5_to_rooot.py data.h5 /my/dir/ 1
-=======
 # python h5_to_root_ndlarflow_minirun5.py filename isData outputdir
 # Example to run on data: python h5_to_root_ndlarflow_minirun5.py data.h5 1 /my/dir/
->>>>>>> upstream3/master
 # filename is an argument of the filename (does not need quotations)
 # data is to toggle the MC information for simulation (0) and data (1), default is simulation
 # Requires standard ROOT, h5py, and numpy 
@@ -75,11 +70,7 @@ def main(argv=None):
         eventID              = array('i',[0])           # event ID [-]
         event_start_t        = array('i',[0])           # event timestamp start [UNITS?]
         event_end_t          = array('i',[0])           # event timestamp end [UNITS?]       
-<<<<<<< HEAD
-        event_unix_ts = array("l",[0])
-=======
         event_unix_ts = array("i",[0])
->>>>>>> upstream3/master
         subrun=array("i",[0])
         run= array("i",[0])
         
@@ -124,14 +115,10 @@ def main(argv=None):
         mode=ROOT.std.vector("int")();
         ccnc=ROOT.std.vector("int")(); 
         
-        # stetup tree for output       
+        # setup tree for output
         output_tree.Branch("event"           ,eventID           ,"eventID/I")
         output_tree.Branch("subrun"           ,subrun           ,"subrun/I")
-<<<<<<< HEAD
-        output_tree.Branch("unix_ts",event_unix_ts,"unix_ts/L");
-=======
         output_tree.Branch("unix_ts",event_unix_ts,"unix_ts/I");
->>>>>>> upstream3/master
         output_tree.Branch("run"           ,run           ,"run/I")
         output_tree.Branch("event_start_t"     ,event_start_t     ,"event_start_t/I")     # 32 bit timestamp (2^32-1 = 2.147483647e9)
         output_tree.Branch("event_end_t"       ,event_end_t       ,"event_end_t/I")       # 32 bit timestamp (2^32-1 = 2.147483647e9)
