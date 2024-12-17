@@ -403,7 +403,9 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
                 LArSPMC *larspmc = dynamic_cast<LArSPMC *>(larsp.get());
                 const std::vector<float> mcContribs = (*larspmc->m_hit_packetFrac)[isp];
                 const int biggestContribIndex = std::distance(mcContribs.begin(), std::max_element(mcContribs.begin(), mcContribs.end()));
-                trackID = (*larspmc->m_hit_particleID)[isp][biggestContribIndex];
+		const std::vector<long> hitPartIDVect = (*larspmc->m_hit_particleID)[isp];
+		trackID = (hitPartIDVect.size() > biggestContribIndex) ? hitPartIDVect[biggestContribIndex] : 0;
+
                 // Due to the merging of hits, the contributions can sometimes add up to more than 1.
                 // Normalise first
                 const float sum = std::accumulate(mcContribs.begin(), mcContribs.end(), 0.f);
@@ -529,14 +531,14 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
     // This is needed to find the unique ID for parent MC particles, where we only know their vertex_id & mcp_idLocal's.
     // The "mcp_mother" local ID doesn't have a corresponding unique "mcp_file_mother" stored in the input ROOT file.
     // We need to do this before creating the MC particles since the ancestry could be stored in any order
-    std::map<std::pair<long, int>, long> mcIDMap;
+    std::map<std::pair<long, long>, long> mcIDMap;
 
     for (size_t i = 0; i < larspmc.m_mcp_id->size(); ++i)
     {
         // Store the corresponding unique (file-based) MC ID for each <vertex_id, mcp_idLocal> key pair
         const long mcpID = (*larspmc.m_mcp_id)[i];
         const long mcpVertexID = (*larspmc.m_mcp_vertex_id)[i];
-        const int mcpIDLocal = (*larspmc.m_mcp_idLocal)[i];
+        const long mcpIDLocal = (*larspmc.m_mcp_idLocal)[i];
         mcIDMap[std::make_pair(mcpVertexID, mcpIDLocal)] = mcpID;
     }
 
@@ -596,7 +598,7 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
 
         // Set parent relationship. For the parent, use its <vertex_id, mcp_idLocal> pair to get its unique ID
         const long mcpMotherID = (*larspmc.m_mcp_mother)[i];
-        const std::pair<long, int> parentPair = std::make_pair(mcpVertexID, mcpMotherID);
+        const std::pair<long, long> parentPair = std::make_pair(mcpVertexID, mcpMotherID);
         const long mcpParentID = (mcIDMap.find(parentPair) != mcIDMap.end()) ? mcIDMap.at(parentPair) : mcpMotherID;
 
         if (mcpParentID == -1) // link to mc neutrino
