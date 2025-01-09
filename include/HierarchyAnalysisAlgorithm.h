@@ -140,7 +140,7 @@ private:
 
     int m_minTrajectoryPoints;         ///< Min Trajectory Points to perform sliding track fit (as in Pandora Track Creation)
     int m_slidingFitHalfWindow;        ///< Sliding fit half window as in Pandora Track Creation
-    int m_pixelPitch;                  ///< Spacing between pixels, for "length scale for binning hits, performing linear fits"
+    float m_pixelPitch;                  ///< Spacing between pixels, for "length scale for binning hits, performing linear fits"
 };
 
 } // namespace lar_content

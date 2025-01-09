@@ -186,7 +186,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector sliceHitsZ;
 
     // BH: vectors for track fit outputs
-    IntVector trkpointsTF;
+    IntVector trkpointsVectTF;
     FloatVector startXVectTF, startYVectTF, startZVectTF;
     FloatVector startPxVectTF, startPyVectTF, startPzVectTF;
     FloatVector endXVectTF, endYVectTF, endZVectTF;
