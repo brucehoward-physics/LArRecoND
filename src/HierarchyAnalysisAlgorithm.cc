@@ -58,7 +58,10 @@ HierarchyAnalysisAlgorithm::HierarchyAnalysisAlgorithm() :
     m_minRecoGoodViews{2},
     m_removeRecoNeutrons{true},
     m_selectRecoHits{true},
-    m_mcIdMap{}
+    m_mcIdMap{},
+    m_minTrajectoryPoints{2},
+    m_slidingFitHalfWindow{20},
+    m_pixelPitch{0.38}
 {
 }
 
@@ -182,6 +185,14 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector sliceHitsY;
     FloatVector sliceHitsZ;
 
+    // BH: vectors for track fit outputs
+    IntVector trkpointsTF;
+    FloatVector startXVectTF, startYVectTF, startZVectTF;
+    FloatVector startPxVectTF, startPyVectTF, startPzVectTF;
+    FloatVector endXVectTF, endYVectTF, endZVectTF;
+    FloatVector endPxVectTF, endPyVectTF, endPzVectTF;
+    FloatVector lengthVectTF;
+
     // Get the list of root MCParticles for the MC truth matching
     MCParticleList rootMCParticles;
     matchInfo.GetRootMCParticles(rootMCParticles);
@@ -287,6 +298,25 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 const Cluster *pClusterW = this->GetCluster(pPfo, TPC_VIEW_W);
                 const int nWHits = (pClusterW != nullptr) ? pClusterW->GetNCaloHits() : 0;
 
+		// Let's also try the sliding track fit using our 3d pointVector for the PFO (as in Track Creation Module)
+                // -- We'll use the same vertex as above.
+		lar_content::LArTrackStateVector trackStateVector;
+                bool trackStateSuccess=false;
+		pandora::IntVector indexVector;
+                try {
+		  lar_content::LArPfoHelper::GetSlidingFitTrajectory( pointVector,
+								      vertex,
+								      m_slidingFitHalfWindow,
+								      m_pixelPitch,
+								      trackStateVector,
+								      &indexVector);
+		  trackStateSuccess=true;
+                }
+                catch (const pandora::StatusCodeException&) {
+		  trackStateSuccess=false;
+		  std::cout << "Unable to extract sliding fit trajectory" << std::endl;
+                }
+
                 // Find best-matched MC particle for this reconstructed cluster
                 const HierarchyAnalysisAlgorithm::RecoMCMatch bestMatch = GetRecoMCMatch(pRecoNode, matchInfo, rootMCParticles);
 
@@ -323,6 +353,52 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 primaryLVect.emplace_back(primaryLength);
                 secondaryLVect.emplace_back(secondaryLength);
                 tertiaryLVect.emplace_back(tertiaryLength);
+
+		// Place into the vector all the stuff from the linear fit...
+                if (!trackStateSuccess || trackStateVector.size() < m_minTrajectoryPoints) {
+		  // Not enough points, fill some "default" values
+		  startXVectTF.emplace_back(-9999.);
+		  startYVectTF.emplace_back(-9999.);
+		  startZVectTF.emplace_back(-9999.);
+		  startPxVectTF.emplace_back(1.);
+		  startPyVectTF.emplace_back(0.);
+		  startPzVectTF.emplace_back(0.);
+		  endXVectTF.emplace_back(-9999.);
+		  endYVectTF.emplace_back(-9999.);
+		  endZVectTF.emplace_back(-9999.);
+		  endPxVectTF.emplace_back(1.);
+		  endPyVectTF.emplace_back(0.);
+		  endPzVectTF.emplace_back(0.);
+		  lengthVectTF.emplace_back(0.);
+                }
+                else {
+		  // Number of track points
+		  trkpointsVectTF.emplace_back( trackStateVector.size() );
+		  // Track start
+		  const lar_content::LArTrackState& trackStateStart = trackStateVector.front();
+		  startXVectTF.emplace_back( trackStateStart.GetPosition().GetX() );
+		  startYVectTF.emplace_back( trackStateStart.GetPosition().GetY() );
+		  startZVectTF.emplace_back( trackStateStart.GetPosition().GetZ() );
+		  startPxVectTF.emplace_back( trackStateStart.GetDirection().GetX() );
+		  startPyVectTF.emplace_back( trackStateStart.GetDirection().GetY() );
+		  startPzVectTF.emplace_back( trackStateStart.GetDirection().GetZ() );
+		  // Track end
+		  const lar_content::LArTrackState& trackStateEnd = trackStateVector.back();
+		  endXVectTF.emplace_back( trackStateEnd.GetPosition().GetX() );
+		  endYVectTF.emplace_back( trackStateEnd.GetPosition().GetY() );
+		  endZVectTF.emplace_back( trackStateEnd.GetPosition().GetZ() );
+		  endPxVectTF.emplace_back( trackStateEnd.GetDirection().GetX() );
+		  endPyVectTF.emplace_back( trackStateEnd.GetDirection().GetY() );
+		  endPzVectTF.emplace_back( trackStateEnd.GetDirection().GetZ() );
+		  // Loop through track state vector and get the length
+		  float trklength = 0.;
+		  for (unsigned int idxPt=0; idxPt < trackStateVector.size()-1; ++idxPt) {
+		    const lar_content::LArTrackState& trackState = trackStateVector.at(idxPt);
+		    const lar_content::LArTrackState& trackStateNext = trackStateVector.at(idxPt+1);
+		    trklength+=std::sqrt( trackState.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
+		  }
+		  lengthVectTF.emplace_back( trklength );
+                }
 
                 // Cluster energy (sum over all hits)
                 energyVect.emplace_back(clusterEnergy);
@@ -415,6 +491,22 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "length2", &secondaryLVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "length3", &tertiaryLVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "energy", &energyVect));
+
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "npointstrkfit", &trkpointsVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startXtrkfit", &startXVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startYtrkfit", &startYVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startZtrkfit", &startZVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startPxtrkfit", &startPxVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startPytrkfit", &startPyVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startPztrkfit", &startPzVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endXtrkfit", &endXVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endYtrkfit", &endYVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endZtrkfit", &endZVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endPxtrkfit", &endPxVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endPytrkfit", &endPyVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endPztrkfit", &endPzVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "lengthtrkfit", &lengthVectTF));
+
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "gotMatch", &matchVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcPDG", &mcPDGVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcId", &mcIdVect));
@@ -606,6 +698,14 @@ StatusCode HierarchyAnalysisAlgorithm::ReadSettings(const TiXmlHandle xmlHandle)
     PANDORA_RETURN_RESULT_IF_AND_IF(
         STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "RemoveRecoNeutrons", m_removeRecoNeutrons));
     PANDORA_RETURN_RESULT_IF_AND_IF(STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "SelectRecoHits", m_selectRecoHits));
+
+    // Setting up the sliding linear fit stuff
+    PANDORA_RETURN_RESULT_IF_AND_IF(
+        STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "MinTrajectoryPoints", m_minTrajectoryPoints));
+    PANDORA_RETURN_RESULT_IF_AND_IF(
+	STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "SlidingFitHalfWindow", m_slidingFitHalfWindow));
+    PANDORA_RETURN_RESULT_IF_AND_IF(
+	STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "PixelPitch", m_pixelPitch));
 
     return STATUS_CODE_SUCCESS;
 }
