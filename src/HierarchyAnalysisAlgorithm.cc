@@ -181,6 +181,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
 
     // BH: vector of vector of hits for the hit positions
     IntVector sliceHitsSlice;
+    IntVector sliceHitsPfoId;
     FloatVector sliceHitsX;
     FloatVector sliceHitsY;
     FloatVector sliceHitsZ;
@@ -214,17 +215,24 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
         pandora::PfoList pfosInSlice;
         LArPfoHelper::GetAllConnectedPfos(pRoot, pfosInSlice);
         pfosInSlice.sort(LArPfoHelper::SortByNHits);
-        pandora::CaloHitList hits;
-        for ( const pandora::ParticleFlowObject* const pPfo : pfosInSlice ) {
-            LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_3D, hits);
-            LArPfoHelper::GetIsolatedCaloHits(pPfo, pandora::TPC_3D, hits);
-        }
-        FloatVector hitPosX, hitPosY, hitPosZ;
-        for ( const pandora::CaloHit* const pCaloHit : hits ) {
+	// Loop over pfps and do the adding all at once so that we can ALSO tag PFOs directly in the displays
+	int thisPfoId = -1;
+	IntVector hitPfoId;
+	FloatVector hitPosX, hitPosY, hitPosZ;
+	for ( const pandora::ParticleFlowObject* const pPfo : pfosInSlice ) {
+	  thisPfoId+=1;
+
+	  pandora::CaloHitList hits;
+	  LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_3D, hits);
+	  LArPfoHelper::GetIsolatedCaloHits(pPfo, pandora::TPC_3D, hits);
+
+	  for ( const pandora::CaloHit* const pCaloHit : hits ) {
+	    sliceHitsPfoId.emplace_back( thisPfoId );
             sliceHitsSlice.emplace_back( sliceId );
             sliceHitsX.emplace_back( pCaloHit->GetPositionVector().GetX() );
             sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
             sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
+	  }
         }
 
         // Get (first) root vertex
@@ -537,6 +545,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPz", &mcNuPzVect));
     // BH:
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsSlice", &sliceHitsSlice));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsPfoId", &sliceHitsPfoId));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsX", &sliceHitsX));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsY", &sliceHitsY));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsZ", &sliceHitsZ));
