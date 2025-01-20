@@ -433,7 +433,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 const CartesianVector mcMomentum = (pLeadingMC != nullptr) ? pLeadingMC->GetMomentum() : CartesianVector(0.f, 0.f, 0.f);
                 const CartesianVector mcVertex = (pLeadingMC != nullptr) ? pLeadingMC->GetVertex() : CartesianVector(max, max, max);
                 const CartesianVector mcEndPoint = (pLeadingMC != nullptr) ? pLeadingMC->GetEndpoint() : CartesianVector(max, max, max);
-                const float mcLength = (pLeadingMC != nullptr) ? pLeadingMC->GetLength() : 0.f;
+                const float mcLength = (dynamic_cast<const LArMCParticle *>(pLeadingMC) != nullptr) ? LArMCParticleHelper::GetLength(pLeadingMC) : 0.f;
 
                 // MC neutrino parent info, including Nuance interaction code
                 const MCParticle *pNuRoot = bestMatch.m_pNuRoot;
