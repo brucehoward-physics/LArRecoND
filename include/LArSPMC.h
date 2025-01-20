@@ -66,6 +66,7 @@ public:
     std::vector<float> *m_mcp_endx = nullptr;
     std::vector<float> *m_mcp_endy = nullptr;
     std::vector<float> *m_mcp_endz = nullptr;
+    std::vector<float> *m_mcp_length = nullptr;
     TBranch *m_b_mcp_energy = nullptr;
     TBranch *m_b_mcp_pdg = nullptr;
     TBranch *m_b_mcp_nuid = nullptr;
@@ -82,6 +83,7 @@ public:
     TBranch *m_b_mcp_endx = nullptr;
     TBranch *m_b_mcp_endy = nullptr;
     TBranch *m_b_mcp_endz = nullptr;
+    TBranch *m_b_mcp_length = nullptr;
 
     // Neutrino information
     std::vector<long> *m_vertex_id = nullptr;
@@ -158,6 +160,7 @@ void LArSPMC::InitMC(TTree *tree)
     m_fChain->SetBranchAddress("mcp_endx", &m_mcp_endx, &m_b_mcp_endx);
     m_fChain->SetBranchAddress("mcp_endy", &m_mcp_endy, &m_b_mcp_endy);
     m_fChain->SetBranchAddress("mcp_endz", &m_mcp_endz, &m_b_mcp_endz);
+    m_fChain->SetBranchAddress("mcp_length", &m_mcp_length, &m_b_mcp_length);
     m_fChain->SetBranchAddress("vertex_id", &m_vertex_id, &m_b_vertex_id);
     m_fChain->SetBranchAddress("nuID", &m_nuID, &m_b_nuID);
     m_fChain->SetBranchAddress("nue", &m_nue, &m_b_nue);

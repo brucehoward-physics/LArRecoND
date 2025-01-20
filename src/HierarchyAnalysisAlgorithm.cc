@@ -171,7 +171,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector completenessVect, purityVect;
     // MC matched energy, momentum, vertex and end position
     FloatVector mcEVect, mcPxVect, mcPyVect, mcPzVect;
-    FloatVector mcVtxXVect, mcVtxYVect, mcVtxZVect, mcEndXVect, mcEndYVect, mcEndZVect;
+    FloatVector mcVtxXVect, mcVtxYVect, mcVtxZVect, mcEndXVect, mcEndYVect, mcEndZVect, mcLengthVect;
     // MC neutrino parent info
     IntVector mcNuPDGVect, mcNuCodeVect;
     FloatVector mcNuVtxXVect, mcNuVtxYVect, mcNuVtxZVect;
@@ -423,6 +423,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 const CartesianVector mcMomentum = (pLeadingMC != nullptr) ? pLeadingMC->GetMomentum() : CartesianVector(0.f, 0.f, 0.f);
                 const CartesianVector mcVertex = (pLeadingMC != nullptr) ? pLeadingMC->GetVertex() : CartesianVector(max, max, max);
                 const CartesianVector mcEndPoint = (pLeadingMC != nullptr) ? pLeadingMC->GetEndpoint() : CartesianVector(max, max, max);
+                const float mcLength = (pLeadingMC != nullptr) ? pLeadingMC->GetLength() : 0.f;
 
                 // MC neutrino parent info, including Nuance interaction code
                 const MCParticle *pNuRoot = bestMatch.m_pNuRoot;
@@ -452,6 +453,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 mcEndXVect.emplace_back(mcEndPoint.GetX());
                 mcEndYVect.emplace_back(mcEndPoint.GetY());
                 mcEndZVect.emplace_back(mcEndPoint.GetZ());
+                mcLengthVect.emplace_back(mcLength);
                 mcNuPDGVect.emplace_back(mcNuPDG);
                 mcNuIdVect.emplace_back(mcNuId);
                 mcNuCodeVect.emplace_back(mcNuCode);
@@ -533,6 +535,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcEndX", &mcEndXVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcEndY", &mcEndYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcEndZ", &mcEndZVect));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcLength", &mcLengthVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPDG", &mcNuPDGVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuId", &mcNuIdVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuCode", &mcNuCodeVect));

@@ -581,6 +581,9 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
         const float endz = (*larspmc.m_mcp_endz)[i] * parameters.m_lengthScale;
         mcParticleParameters.m_endpoint = pandora::CartesianVector(endx, endy, endz);
 
+        // MC Particle trajectory length in cm
+        mcParticleParameters.m_length = (*larspmc.m_mcp_length)[i];
+
         // Process ID
         mcParticleParameters.m_process = lar_content::MC_PROC_UNKNOWN;
 
