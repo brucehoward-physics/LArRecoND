@@ -513,6 +513,7 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
         lar_content::LArMCParticleParameters mcNeutrinoParameters;
         mcNeutrinoParameters.m_nuanceCode = nuanceCode;
         mcNeutrinoParameters.m_process = lar_content::MC_PROC_INCIDENT_NU;
+        mcNeutrinoParameters.m_length = 0.;
 
         mcNeutrinoParameters.m_energy = nuE;
         mcNeutrinoParameters.m_momentum = pandora::CartesianVector(nuPx, nuPy, nuPz);
