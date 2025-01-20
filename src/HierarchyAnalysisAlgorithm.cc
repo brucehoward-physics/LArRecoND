@@ -350,7 +350,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 float trackScore = -1.;
                 const auto iterTrackScore(properties.find("TrackScore"));
                 if ( iterTrackScore != properties.end() ){
-                    trackScore = it->second;
+                    trackScore = iterTrackScore->second;
                 }
                 trackScoreVect.emplace_back( trackScore );
 
