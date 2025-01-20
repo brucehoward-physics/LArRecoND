@@ -160,6 +160,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     int sliceId{-1};
     // Slice, hits and isShower
     IntVector sliceIdVect, n3DHitsVect, nUHitsVect, nVHitsVect, nWHitsVect, isShowerVect;
+    FloatVector trackScoreVect;
     // Reco neutrino vertex
     FloatVector nuVtxXVect, nuVtxYVect, nuVtxZVect;
     // Cluster start, end, direction, PCA axis lengths and total hit energy
@@ -343,6 +344,15 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 // Assume all PFOs are tracks for now
                 const int isShower{0};
                 isShowerVect.emplace_back(isShower);
+                // Get the track score for the PFO
+                // as in https://github.com/PandoraPFA/larpandora/blob/develop/larpandora/LArPandoraInterface/LArPandoraOutput.cxx#L325 but with TrackScore as the property
+                const auto& properties = pPfo->GetPropertiesMap();
+                float trackScore = -1.;
+                const auto iterTrackScore(properties.find("TrackScore"));
+                if ( iterTrackScore != properties.end() ){
+                    trackScore = it->second;
+                }
+                trackScoreVect.emplace_back( trackScore );
 
                 // Cluster vertex, end and direction (from PCA)
                 startXVect.emplace_back(vertex.GetX());
@@ -485,6 +495,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nVHits", &nVHitsVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nWHits", &nWHitsVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "isShower", &isShowerVect));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "trackScore", &trackScoreVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startX", &startXVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startY", &startYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startZ", &startZVect));
