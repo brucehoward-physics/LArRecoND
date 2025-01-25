@@ -121,6 +121,8 @@ def main(argv=None):
         mcp_endy=ROOT.std.vector("float")();
         mcp_endz=ROOT.std.vector("float")();
         mcp_length=ROOT.std.vector("float")();
+        mcp_tstart=ROOT.std.vector("double")();
+        mcp_tend=ROOT.std.vector("double")();
         nuvtxx=ROOT.std.vector("float")();
         nuvtxy=ROOT.std.vector("float")();
         nuvtxz=ROOT.std.vector("float")();
@@ -128,6 +130,7 @@ def main(argv=None):
         nupy=ROOT.std.vector("float")();
         nupz=ROOT.std.vector("float")();
         nue=ROOT.std.vector("float")();
+        nuspillt=ROOT.std.vector("double")();
         nuID=ROOT.std.vector("long")();
         vertex_id=ROOT.std.vector("long")();
         nuPDG=ROOT.std.vector("int")();
@@ -191,9 +194,12 @@ def main(argv=None):
         output_tree.Branch("mcp_endy",mcp_endy)
         output_tree.Branch("mcp_endz",mcp_endz)
         output_tree.Branch("mcp_length",mcp_length)
+        output_tree.Branch("mcp_tstart",mcp_tstart)
+        output_tree.Branch("mcp_tend",mcp_tend)
         output_tree.Branch("nuID",nuID)
         output_tree.Branch("vertex_id",vertex_id)
         output_tree.Branch("nue",nue)
+        output_tree.Branch("nuspillt",nuspillt)
         output_tree.Branch("nuPDG",nuPDG)
         output_tree.Branch("nupx",nupx)
         output_tree.Branch("nupy",nupy)
@@ -258,7 +264,10 @@ def main(argv=None):
             mcp_endy.clear()
             mcp_endz.clear()
             mcp_length.clear()
+            mcp_tstart.clear()
+            mcp_tend.clear()
             nue.clear()
+            nuspillt.clear()
             nuID.clear()
             vertex_id.clear()
             nuPDG.clear()
@@ -302,6 +311,7 @@ def main(argv=None):
                 [nuID.push_back(int(i)) for i in allVertices["nuVertexID"]]
                 [vertex_id.push_back(int(i)) for i in allVertices["nuVertexID"]]
                 [nue.push_back(i) for i in allVertices["nuVertexE"]]
+                [nuspillt.push_back(i) for i in allVertices["nuSpillT"]]
                 [nuPDG.push_back(int(i)) for i in allVertices["nuPDG"]]
                 [nuvtxx.push_back(i+trueXOffset) for i in allVertices["nuVertexX"]]
                 [nuvtxy.push_back(i+trueYOffset) for i in allVertices["nuVertexY"]]
@@ -319,6 +329,8 @@ def main(argv=None):
                 [mcp_endy.push_back(i+trueYOffset) for i in  allTrajectories["trajEndY"]]
                 [mcp_endz.push_back(i+trueZOffset) for i in  allTrajectories["trajEndZ"]]
                 [mcp_length.push_back(i) for i in allTrajectories["trajLength"]]
+                [mcp_tstart.push_back(i) for i in allTrajectories["trajTStart"]]
+                [mcp_tend.push_back(i) for i in allTrajectories["trajTEnd"]]
                 [mcp_px.push_back(i) for i in allTrajectories["trajPx"]]
                 [mcp_py.push_back(i) for i in allTrajectories["trajPy"]]
                 [mcp_pz.push_back(i) for i in allTrajectories["trajPz"]]
@@ -600,6 +612,8 @@ def find_all_truth_in_spill(spillID, flow_out):
     trajEndY=[]
     trajEndZ=[]
     trajLength=[]
+    trajTStart=[]
+    trajTEnd=[]
     trajPx=[]
     trajPy=[]
     trajPz=[]
@@ -621,6 +635,8 @@ def find_all_truth_in_spill(spillID, flow_out):
         trajEndY  .append(traj["xyz_end"][1])
         trajEndZ  .append(traj["xyz_end"][2])
         trajLength.append(traj["dist_travel"])
+        trajTStart.append(traj["t_start"])
+        trajTEnd.append(traj["t_end"])
         trajID    .append(traj["file_traj_id"])
         trajIDLocal.append(traj["traj_id"])
         trajPDG   .append(traj["pdg_id"])
@@ -645,6 +661,8 @@ def find_all_truth_in_spill(spillID, flow_out):
     trajectories["trajEndY"]=trajEndY
     trajectories["trajEndZ"]=trajEndZ
     trajectories["trajLength"]=trajLength
+    trajectories["trajTStart"]=trajTStart
+    trajectories["trajTEnd"]=trajTEnd
     trajectories["file_traj_id"]=trajID
     trajectories["traj_id"]=trajIDLocal
     trajectories["trajPDG"]=trajPDG
@@ -661,6 +679,7 @@ def find_all_truth_in_spill(spillID, flow_out):
     nuVertexY=[]
     nuVertexZ=[]
     nuVertexE=[]
+    nuSpillT=[]
     nuPDG=[]
     nuPx=[]
     nuPy=[]
@@ -675,6 +694,7 @@ def find_all_truth_in_spill(spillID, flow_out):
         nuVertexY .append(vtx["y_vert"])
         nuVertexZ .append(vtx["z_vert"])
         nuVertexE .append(vtx["Enu"]*MeV2GeV)
+        nuSpillT  .append(vtx["t_event"])
         nuPDG     .append(vtx["nu_pdg"])
         nuPx      .append(vtx["nu_4mom"][0]*MeV2GeV)
         nuPy      .append(vtx["nu_4mom"][1]*MeV2GeV)
@@ -687,6 +707,7 @@ def find_all_truth_in_spill(spillID, flow_out):
     vertices["nuVertexY"]=nuVertexY
     vertices["nuVertexZ"]=nuVertexZ
     vertices["nuVertexE"]=nuVertexE
+    vertices["nuSpillT"]=nuSpillT
     vertices["nuPDG"]=nuPDG
     vertices["nuPx"]=nuPx
     vertices["nuPy"]=nuPy
