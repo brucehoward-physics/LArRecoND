@@ -67,6 +67,8 @@ public:
     std::vector<float> *m_mcp_endy = nullptr;
     std::vector<float> *m_mcp_endz = nullptr;
     std::vector<float> *m_mcp_length = nullptr;
+    std::vector<double> *m_mcp_tStart = nullptr;
+    std::vector<double> *m_mcp_tEnd = nullptr;
     TBranch *m_b_mcp_energy = nullptr;
     TBranch *m_b_mcp_pdg = nullptr;
     TBranch *m_b_mcp_nuid = nullptr;
@@ -84,6 +86,8 @@ public:
     TBranch *m_b_mcp_endy = nullptr;
     TBranch *m_b_mcp_endz = nullptr;
     TBranch *m_b_mcp_length = nullptr;
+    TBranch *m_b_mcp_tStart = nullptr;
+    TBranch *m_b_mcp_tEnd = nullptr;
 
     // Neutrino information
     std::vector<long> *m_vertex_id = nullptr;
@@ -98,6 +102,7 @@ public:
     std::vector<float> *m_nuvtxz = nullptr;
     std::vector<int> *m_mode = nullptr;
     std::vector<int> *m_ccnc = nullptr;
+    std::vector<double> *m_spillT = nullptr;
     TBranch *m_b_vertex_id = nullptr;
     TBranch *m_b_nuID = nullptr;
     TBranch *m_b_nue = nullptr;
@@ -110,6 +115,7 @@ public:
     TBranch *m_b_nuvtxz = nullptr;
     TBranch *m_b_mode = nullptr;
     TBranch *m_b_ccnc = nullptr;
+    TBranch *m_b_spillT = nullptr;
 };
 
 LArSPMC::LArSPMC(TTree *tree) : LArSP(tree)
@@ -161,6 +167,8 @@ void LArSPMC::InitMC(TTree *tree)
     m_fChain->SetBranchAddress("mcp_endy", &m_mcp_endy, &m_b_mcp_endy);
     m_fChain->SetBranchAddress("mcp_endz", &m_mcp_endz, &m_b_mcp_endz);
     m_fChain->SetBranchAddress("mcp_length", &m_mcp_length, &m_b_mcp_length);
+    m_fChain->SetBranchAddress("mcp_tstart", &m_mcp_tStart, &m_b_mcp_tStart);
+    m_fChain->SetBranchAddress("mcp_tend", &m_mcp_tEnd, &m_b_mcp_tEnd);
     m_fChain->SetBranchAddress("vertex_id", &m_vertex_id, &m_b_vertex_id);
     m_fChain->SetBranchAddress("nuID", &m_nuID, &m_b_nuID);
     m_fChain->SetBranchAddress("nue", &m_nue, &m_b_nue);
@@ -173,6 +181,7 @@ void LArSPMC::InitMC(TTree *tree)
     m_fChain->SetBranchAddress("nuvtxz", &m_nuvtxz, &m_b_nuvtxz);
     m_fChain->SetBranchAddress("mode", &m_mode, &m_b_mode);
     m_fChain->SetBranchAddress("ccnc", &m_ccnc, &m_b_ccnc);
+    m_fChain->SetBranchAddress("nuspillt", &m_spillT, &m_b_spillT);
 }
 
 } // namespace lar_nd_reco

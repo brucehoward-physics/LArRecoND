@@ -18,6 +18,8 @@
 
 using namespace pandora;
 
+typedef std::vector<double> DoubleVector;
+
 namespace lar_content
 {
 
@@ -173,10 +175,12 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     // MC matched energy, momentum, vertex and end position
     FloatVector mcEVect, mcPxVect, mcPyVect, mcPzVect;
     FloatVector mcVtxXVect, mcVtxYVect, mcVtxZVect, mcEndXVect, mcEndYVect, mcEndZVect, mcLengthVect;
+    DoubleVector mcTStartVect, mcTEndVect;
     // MC neutrino parent info
     IntVector mcNuPDGVect, mcNuCodeVect;
     FloatVector mcNuVtxXVect, mcNuVtxYVect, mcNuVtxZVect;
     FloatVector mcNuEVect, mcNuPxVect, mcNuPyVect, mcNuPzVect;
+    DoubleVector mcNuSpillT;
     // Long integers for the MC IDs: vertex, unique and local trajectories
     std::vector<long> mcNuIdVect, mcIdVect, mcLocalIdVect;
 
@@ -434,6 +438,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 const CartesianVector mcVertex = (pLeadingMC != nullptr) ? pLeadingMC->GetVertex() : CartesianVector(max, max, max);
                 const CartesianVector mcEndPoint = (pLeadingMC != nullptr) ? pLeadingMC->GetEndpoint() : CartesianVector(max, max, max);
                 const float mcLength = (dynamic_cast<const LArMCParticle *>(pLeadingMC) != nullptr) ? LArMCParticleHelper::GetLength(pLeadingMC) : 0.f;
+                const double mcTStart = (dynamic_cast<const LArMCParticle *>(pLeadingMC) != nullptr) ? LArMCParticleHelper::GetTStart(pLeadingMC) : 0.f;
+                const double mcTEnd = (dynamic_cast<const LArMCParticle *>(pLeadingMC) != nullptr) ? LArMCParticleHelper::GetTEnd(pLeadingMC) : 0.f;
 
                 // MC neutrino parent info, including Nuance interaction code
                 const MCParticle *pNuRoot = bestMatch.m_pNuRoot;
@@ -444,6 +450,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 const CartesianVector mcNuVertex = (pNuRoot != nullptr) ? pNuRoot->GetVertex() : CartesianVector(max, max, max);
                 const float mcNuEnergy = (pNuRoot != nullptr) ? pNuRoot->GetEnergy() : 0.f;
                 const CartesianVector mcNuMomentum = (pNuRoot != nullptr) ? pNuRoot->GetMomentum() : CartesianVector(0.f, 0.f, 0.f);
+                const double mcNuSpillT = (dynamic_cast<const LArMCParticle *>(pNuRoot) != nullptr) ? LArMCParticleHelper::GetNuSpillT(pNuRoot) : 0.f;
 
                 matchVect.emplace_back(gotMatch);
                 mcPDGVect.emplace_back(mcPDG);
@@ -464,6 +471,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 mcEndYVect.emplace_back(mcEndPoint.GetY());
                 mcEndZVect.emplace_back(mcEndPoint.GetZ());
                 mcLengthVect.emplace_back(mcLength);
+                mcTStartVect.emplace_back(mcTStart);
+                mcTEndVect.emplace_back(mcTEnd);
                 mcNuPDGVect.emplace_back(mcNuPDG);
                 mcNuIdVect.emplace_back(mcNuId);
                 mcNuCodeVect.emplace_back(mcNuCode);
@@ -474,6 +483,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 mcNuPxVect.emplace_back(mcNuMomentum.GetX());
                 mcNuPyVect.emplace_back(mcNuMomentum.GetY());
                 mcNuPzVect.emplace_back(mcNuMomentum.GetZ());
+                mcNuSpillTVect.emplace_back(mcNuSpillT);
 
             } // Reco PFOs
         } // Reco nodes
@@ -547,6 +557,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcEndY", &mcEndYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcEndZ", &mcEndZVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcLength", &mcLengthVect));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcTStart", &mcTStartVect));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcTEnd", &mcTEndVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPDG", &mcNuPDGVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuId", &mcNuIdVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuCode", &mcNuCodeVect));
@@ -557,7 +569,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPx", &mcNuPxVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPy", &mcNuPyVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuPz", &mcNuPzVect));
-    // BH:
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcNuSpillT", &mcNuSpillTVect));
+    // BH: for display drawing and diagnostics
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsSlice", &sliceHitsSlice));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsPfoId", &sliceHitsPfoId));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsX", &sliceHitsX));

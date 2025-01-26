@@ -514,6 +514,9 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
         mcNeutrinoParameters.m_nuanceCode = nuanceCode;
         mcNeutrinoParameters.m_process = lar_content::MC_PROC_INCIDENT_NU;
         mcNeutrinoParameters.m_length = 0.;
+        mcNeutrinoParameters.m_spillT = (*larspmc.m_spillT)[i];
+        mcNeutrinoParameters.m_tStart = 0.;
+        mcNeutrinoParameters.m_tEnd = 0.;
 
         mcNeutrinoParameters.m_energy = nuE;
         mcNeutrinoParameters.m_momentum = pandora::CartesianVector(nuPx, nuPy, nuPz);
@@ -584,6 +587,11 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
 
         // MC Particle trajectory length in cm
         mcParticleParameters.m_length = (*larspmc.m_mcp_length)[i];
+
+        // Start and end times of MCParticle. Spill Time we fill for the Nu MC, so leave this at 0 here
+        mcParticleParameters.m_spillT = 0.;
+        mcParticleParameters.m_tStart = (*larspmc.m_mcp_tStart)[i];
+        mcParticleParameters.m_tEnd = (*larspmc.m_mcp_tEnd)[i];
 
         // Process ID
         mcParticleParameters.m_process = lar_content::MC_PROC_UNKNOWN;
