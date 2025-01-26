@@ -180,7 +180,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     IntVector mcNuPDGVect, mcNuCodeVect;
     FloatVector mcNuVtxXVect, mcNuVtxYVect, mcNuVtxZVect;
     FloatVector mcNuEVect, mcNuPxVect, mcNuPyVect, mcNuPzVect;
-    DoubleVector mcNuSpillT;
+    DoubleVector mcNuSpillTVect;
     // Long integers for the MC IDs: vertex, unique and local trajectories
     std::vector<long> mcNuIdVect, mcIdVect, mcLocalIdVect;
 
