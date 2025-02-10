@@ -395,9 +395,10 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                     endPyVectTF.emplace_back(0.);
                     endPzVectTF.emplace_back(0.);
                     lengthVectTF.emplace_back(0.);
-                    dQdxTF.emplace_back({});
-                    rrTF.emplace_back({});
-                    qTF.emplace_back({});
+                    FloatVector emptyFloatVec;
+                    dQdxTF.emplace_back(emptyFloatVec);
+                    rrTF.emplace_back(emptyFloatVec);
+                    qTF.emplace_back(emptyFloatVec);
                 }
                 else {
                     // Number of track points
