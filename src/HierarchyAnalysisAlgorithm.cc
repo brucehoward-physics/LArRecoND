@@ -203,6 +203,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     IntVector slcIdTF; // Slice ID for this track for matching
     IntVector pfoIdTF; // PFO ID for this track for matching
     FloatVector dQdxTF; // dQ/dx -> to be turned into dE/dx with calibration
+    FloatVector dxTF; // dx for the hit
     FloatVector rrTF; // residual range for the hit
     FloatVector qTF; // Charge in the hit
 
@@ -408,6 +409,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                     slcIdTF.emplace_back(sliceId);
                     pfoIdTF.emplace_back(recoPfoId);
                     dQdxTF.emplace_back(-9999.);
+                    dxTF.emplace_back(-9999.);
                     rrTF.emplace_back(-9999.);
                     qTF.emplace_back(-9999.);
                 }
@@ -454,7 +456,11 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                             pfoIdTF.emplace_back(recoPfoId);
                             qTF.emplace_back(hitQ);
                             rrTF.emplace_back(hitRR);
-                            dQdxTF.emplace_back(hitQ/hitdx);
+                            dxTF.emplace_back(hitdx);
+                            if ( hitdx > 0. )
+                                dQdxTF.emplace_back(hitQ/hitdx);
+                            else
+                                dQdxTF.emplace_back(-9999.);
                         }
                     }
                 }
@@ -534,7 +540,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startTime", m_startTime));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endTime", m_endTime));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceId", &sliceIdVect));
-    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "pfoId", &pfoIdVect));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "pfoInSliceId", &pfoIdVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nuVtxX", &nuVtxXVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nuVtxY", &nuVtxYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nuVtxZ", &nuVtxZVect));
@@ -580,6 +586,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsPfoIdtrkfit", &pfoIdTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsRRtrkfit", &rrTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsQtrkfit", &qTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsdxtrkfit", &dxTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsdQdxtrkfit", &dQdxTF));
 
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "gotMatch", &matchVect));
