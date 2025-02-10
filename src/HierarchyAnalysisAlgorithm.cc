@@ -198,6 +198,9 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector endXVectTF, endYVectTF, endZVectTF;
     FloatVector endPxVectTF, endPyVectTF, endPzVectTF;
     FloatVector lengthVectTF;
+    std::vector< FloatVector > dQdxTF; // dQ/dx -> to be turned into dE/dx with calibration
+    std::vector< FloatVector > rrTF; // residual range for the hit
+    std::vector< FloatVector > qTF; // Charge in the hit
 
     // Get the list of root MCParticles for the MC truth matching
     MCParticleList rootMCParticles;
@@ -311,23 +314,23 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 const Cluster *pClusterW = this->GetCluster(pPfo, TPC_VIEW_W);
                 const int nWHits = (pClusterW != nullptr) ? pClusterW->GetNCaloHits() : 0;
 
-		// Let's also try the sliding track fit using our 3d pointVector for the PFO (as in Track Creation Module)
+		        // Let's also try the sliding track fit using our 3d pointVector for the PFO (as in Track Creation Module)
                 // -- We'll use the same vertex as above.
-		lar_content::LArTrackStateVector trackStateVector;
+		        lar_content::LArTrackStateVector trackStateVector;
                 bool trackStateSuccess=false;
-		pandora::IntVector indexVector;
+		        pandora::IntVector indexVector;
                 try {
-		  lar_content::LArPfoHelper::GetSlidingFitTrajectory( pointVector,
-								      vertex,
-								      m_slidingFitHalfWindow,
-								      m_pixelPitch,
-								      trackStateVector,
-								      &indexVector);
-		  trackStateSuccess=true;
+		            lar_content::LArPfoHelper::GetSlidingFitTrajectory( pointVector,
+                                                                        vertex,
+                                                                        m_slidingFitHalfWindow,
+                                                                        m_pixelPitch,
+                                                                        trackStateVector,
+                                                                        &indexVector);
+	            	trackStateSuccess=true;
                 }
                 catch (const pandora::StatusCodeException&) {
-		  trackStateSuccess=false;
-		  std::cout << "Unable to extract sliding fit trajectory" << std::endl;
+		            trackStateSuccess=false;
+		            std::cout << "Unable to extract sliding fit trajectory" << std::endl;
                 }
 
                 // Find best-matched MC particle for this reconstructed cluster
@@ -376,50 +379,77 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 secondaryLVect.emplace_back(secondaryLength);
                 tertiaryLVect.emplace_back(tertiaryLength);
 
-		// Place into the vector all the stuff from the linear fit...
+        		// Place into the vector all the stuff from the linear fit...
                 if (!trackStateSuccess || trackStateVector.size() < m_minTrajectoryPoints) {
-		  // Not enough points, fill some "default" values
-		  startXVectTF.emplace_back(-9999.);
-		  startYVectTF.emplace_back(-9999.);
-		  startZVectTF.emplace_back(-9999.);
-		  startPxVectTF.emplace_back(1.);
-		  startPyVectTF.emplace_back(0.);
-		  startPzVectTF.emplace_back(0.);
-		  endXVectTF.emplace_back(-9999.);
-		  endYVectTF.emplace_back(-9999.);
-		  endZVectTF.emplace_back(-9999.);
-		  endPxVectTF.emplace_back(1.);
-		  endPyVectTF.emplace_back(0.);
-		  endPzVectTF.emplace_back(0.);
-		  lengthVectTF.emplace_back(0.);
+                    // Not enough points, fill some "default" values
+                    startXVectTF.emplace_back(-9999.);
+                    startYVectTF.emplace_back(-9999.);
+                    startZVectTF.emplace_back(-9999.);
+                    startPxVectTF.emplace_back(1.);
+                    startPyVectTF.emplace_back(0.);
+                    startPzVectTF.emplace_back(0.);
+                    endXVectTF.emplace_back(-9999.);
+                    endYVectTF.emplace_back(-9999.);
+                    endZVectTF.emplace_back(-9999.);
+                    endPxVectTF.emplace_back(1.);
+                    endPyVectTF.emplace_back(0.);
+                    endPzVectTF.emplace_back(0.);
+                    lengthVectTF.emplace_back(0.);
+                    dQdxTF.emplace_back({});
+                    rrTF.emplace_back({});
+                    qTF.emplace_back({});
                 }
                 else {
-		  // Number of track points
-		  trkpointsVectTF.emplace_back( trackStateVector.size() );
-		  // Track start
-		  const lar_content::LArTrackState& trackStateStart = trackStateVector.front();
-		  startXVectTF.emplace_back( trackStateStart.GetPosition().GetX() );
-		  startYVectTF.emplace_back( trackStateStart.GetPosition().GetY() );
-		  startZVectTF.emplace_back( trackStateStart.GetPosition().GetZ() );
-		  startPxVectTF.emplace_back( trackStateStart.GetDirection().GetX() );
-		  startPyVectTF.emplace_back( trackStateStart.GetDirection().GetY() );
-		  startPzVectTF.emplace_back( trackStateStart.GetDirection().GetZ() );
-		  // Track end
-		  const lar_content::LArTrackState& trackStateEnd = trackStateVector.back();
-		  endXVectTF.emplace_back( trackStateEnd.GetPosition().GetX() );
-		  endYVectTF.emplace_back( trackStateEnd.GetPosition().GetY() );
-		  endZVectTF.emplace_back( trackStateEnd.GetPosition().GetZ() );
-		  endPxVectTF.emplace_back( trackStateEnd.GetDirection().GetX() );
-		  endPyVectTF.emplace_back( trackStateEnd.GetDirection().GetY() );
-		  endPzVectTF.emplace_back( trackStateEnd.GetDirection().GetZ() );
-		  // Loop through track state vector and get the length
-		  float trklength = 0.;
-		  for (unsigned int idxPt=0; idxPt < trackStateVector.size()-1; ++idxPt) {
-		    const lar_content::LArTrackState& trackState = trackStateVector.at(idxPt);
-		    const lar_content::LArTrackState& trackStateNext = trackStateVector.at(idxPt+1);
-		    trklength+=std::sqrt( trackState.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
-		  }
-		  lengthVectTF.emplace_back( trklength );
+                    // Number of track points
+                    trkpointsVectTF.emplace_back( trackStateVector.size() );
+                    // Track start
+                    const lar_content::LArTrackState& trackStateStart = trackStateVector.front();
+                    startXVectTF.emplace_back( trackStateStart.GetPosition().GetX() );
+                    startYVectTF.emplace_back( trackStateStart.GetPosition().GetY() );
+                    startZVectTF.emplace_back( trackStateStart.GetPosition().GetZ() );
+                    startPxVectTF.emplace_back( trackStateStart.GetDirection().GetX() );
+                    startPyVectTF.emplace_back( trackStateStart.GetDirection().GetY() );
+                    startPzVectTF.emplace_back( trackStateStart.GetDirection().GetZ() );
+                    // Track end
+                    const lar_content::LArTrackState& trackStateEnd = trackStateVector.back();
+                    endXVectTF.emplace_back( trackStateEnd.GetPosition().GetX() );
+                    endYVectTF.emplace_back( trackStateEnd.GetPosition().GetY() );
+                    endZVectTF.emplace_back( trackStateEnd.GetPosition().GetZ() );
+                    endPxVectTF.emplace_back( trackStateEnd.GetDirection().GetX() );
+                    endPyVectTF.emplace_back( trackStateEnd.GetDirection().GetY() );
+                    endPzVectTF.emplace_back( trackStateEnd.GetDirection().GetZ() );
+                    // Loop through track state vector and get the length
+                    float trklength = 0.;
+                    for (unsigned int idxPt=0; idxPt < trackStateVector.size()-1; ++idxPt) {
+                        const lar_content::LArTrackState& trackState = trackStateVector.at(idxPt);
+                        const lar_content::LArTrackState& trackStateNext = trackStateVector.at(idxPt+1);
+                        trklength+=std::sqrt( trackState.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
+                    }
+                    lengthVectTF.emplace_back( trklength );
+                    // Loop back through and fill up the relevant track fit vectors for calib/PID
+                    FloatVector thisQ;
+                    FloatVector thisRR;
+                    FloatVector thisdQdx;
+                    float lengthSoFar = 0.;
+                    for (unsigned int idxPt=0; idxPt < trackStateVector.size()-1; ++idxPt) {
+                        const lar_content::LArTrackState& trackState = trackStateVector.at(idxPt);
+                        const lar_content::LArTrackState& trackStateNext = trackStateVector.at(idxPt+1);
+                        lengthSoFar+=std::sqrt( trackState.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
+                        if ( idxPt > 0 ) {
+                            const lar_content::LArTrackState& trackStatePrev = trackStateVector.at(idxPt-1);
+                            float hitQ = trackState.GetCaloHit()->GetInputEnergy();
+                            float hitRR = trklength - lengthSoFar;
+                            float hitdx = std::sqrt( trackStatePrev.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
+                            // Do not do any lifetime, spacecharge, diffusion, etc. corrections... at least yet
+                            thisQ.push_back(hitQ);
+                            thisRR.push_back(hitRR);
+                            thisdQdx.push_back(hitQ/hitdx);
+                        }
+                    }
+
+                    dQdxTF.emplace_back(thisdQdx);
+                    rrTF.emplace_back(thisRR);
+                    qTF.emplace_back(thisQ);
                 }
 
                 // Cluster energy (sum over all hits)
@@ -537,6 +567,9 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endPytrkfit", &endPyVectTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endPztrkfit", &endPzVectTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "lengthtrkfit", &lengthVectTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsRRtrkfit", &rrTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsQtrkfit", &qTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsdQdxtrkfit", &dQdxTF));
 
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "gotMatch", &matchVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "mcPDG", &mcPDGVect));
