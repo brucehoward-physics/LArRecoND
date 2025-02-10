@@ -162,6 +162,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     int sliceId{-1};
     // Slice, hits and isShower
     IntVector sliceIdVect, n3DHitsVect, nUHitsVect, nVHitsVect, nWHitsVect, isShowerVect;
+    IntVector pfoIdVect; // to match up the track fit stuff
     FloatVector trackScoreVect;
     // Reco neutrino vertex
     FloatVector nuVtxXVect, nuVtxYVect, nuVtxZVect;
@@ -198,9 +199,12 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector endXVectTF, endYVectTF, endZVectTF;
     FloatVector endPxVectTF, endPyVectTF, endPzVectTF;
     FloatVector lengthVectTF;
-    std::vector< FloatVector > dQdxTF; // dQ/dx -> to be turned into dE/dx with calibration
-    std::vector< FloatVector > rrTF; // residual range for the hit
-    std::vector< FloatVector > qTF; // Charge in the hit
+
+    IntVector slcIdTF; // Slice ID for this track for matching
+    IntVector pfoIdTF; // PFO ID for this track for matching
+    FloatVector QdxTF; // dQ/dx -> to be turned into dE/dx with calibration
+    FloatVector rrTF; // residual range for the hit
+    FloatVector qTF; // Charge in the hit
 
     // Get the list of root MCParticles for the MC truth matching
     MCParticleList rootMCParticles;
@@ -223,24 +227,24 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
         pandora::PfoList pfosInSlice;
         LArPfoHelper::GetAllConnectedPfos(pRoot, pfosInSlice);
         pfosInSlice.sort(LArPfoHelper::SortByNHits);
-	// Loop over pfps and do the adding all at once so that we can ALSO tag PFOs directly in the displays
-	int thisPfoId = -1;
-	IntVector hitPfoId;
-	FloatVector hitPosX, hitPosY, hitPosZ;
-	for ( const pandora::ParticleFlowObject* const pPfo : pfosInSlice ) {
-	  thisPfoId+=1;
+        // Loop over pfps and do the adding all at once so that we can ALSO tag PFOs directly in the displays
+        int thisPfoId = -1;
+        IntVector hitPfoId;
+        FloatVector hitPosX, hitPosY, hitPosZ;
+        for ( const pandora::ParticleFlowObject* const pPfo : pfosInSlice ) {
+            thisPfoId+=1;
 
-	  pandora::CaloHitList hits;
-	  LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_3D, hits);
-	  LArPfoHelper::GetIsolatedCaloHits(pPfo, pandora::TPC_3D, hits);
+            pandora::CaloHitList hits;
+            LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_3D, hits);
+            LArPfoHelper::GetIsolatedCaloHits(pPfo, pandora::TPC_3D, hits);
 
-	  for ( const pandora::CaloHit* const pCaloHit : hits ) {
-	    sliceHitsPfoId.emplace_back( thisPfoId );
-            sliceHitsSlice.emplace_back( sliceId );
-            sliceHitsX.emplace_back( pCaloHit->GetPositionVector().GetX() );
-            sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
-            sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
-	  }
+            for ( const pandora::CaloHit* const pCaloHit : hits ) {
+                sliceHitsPfoId.emplace_back( thisPfoId );
+                    sliceHitsSlice.emplace_back( sliceId );
+                    sliceHitsX.emplace_back( pCaloHit->GetPositionVector().GetX() );
+                    sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
+                    sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
+            }
         }
 
         // Get (first) root vertex
@@ -253,9 +257,13 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
         LArHierarchyHelper::RecoHierarchy::NodeVector recoNodes;
         recoHierarchy.GetFlattenedNodes(pRoot, recoNodes);
 
+        int recoPfoId = -1;
+
         // Loop over the reco nodes
         for (const LArHierarchyHelper::RecoHierarchy::Node *pRecoNode : recoNodes)
         {
+            recoPfoId+=1;
+
             // Get the list of PFOs for each node
             const PfoList recoParticles = pRecoNode->GetRecoParticles();
 
@@ -338,6 +346,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
 
                 // Store quantities in the vectors
                 sliceIdVect.emplace_back(sliceId);
+                pfoIdVect.emplace_back(recoPfoId);
                 // Neutrino reco vertex
                 nuVtxXVect.emplace_back(rootRecoVtx.GetX());
                 nuVtxYVect.emplace_back(rootRecoVtx.GetY());
@@ -395,10 +404,12 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                     endPyVectTF.emplace_back(0.);
                     endPzVectTF.emplace_back(0.);
                     lengthVectTF.emplace_back(0.);
-                    FloatVector emptyFloatVec;
-                    dQdxTF.emplace_back(emptyFloatVec);
-                    rrTF.emplace_back(emptyFloatVec);
-                    qTF.emplace_back(emptyFloatVec);
+
+                    slcIdTF.emplace_back(sliceId);
+                    pfoIdTF.emplace_back(recoPfoId);
+                    dQdxTF.emplace_back(-9999.);
+                    rrTF.emplace_back(-9999.);
+                    qTF.emplace_back(-9999.);
                 }
                 else {
                     // Number of track points
@@ -428,9 +439,6 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                     }
                     lengthVectTF.emplace_back( trklength );
                     // Loop back through and fill up the relevant track fit vectors for calib/PID
-                    FloatVector thisQ;
-                    FloatVector thisRR;
-                    FloatVector thisdQdx;
                     float lengthSoFar = 0.;
                     for (unsigned int idxPt=0; idxPt < trackStateVector.size()-1; ++idxPt) {
                         const lar_content::LArTrackState& trackState = trackStateVector.at(idxPt);
@@ -442,15 +450,13 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                             float hitRR = trklength - lengthSoFar;
                             float hitdx = std::sqrt( trackStatePrev.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
                             // Do not do any lifetime, spacecharge, diffusion, etc. corrections... at least yet
-                            thisQ.push_back(hitQ);
-                            thisRR.push_back(hitRR);
-                            thisdQdx.push_back(hitQ/hitdx);
+                            slcIdTF.emplace_back(sliceId);
+                            pfoIdTF.emplace_back(recoPfoId);
+                            qTF.emplace_back(hitQ);
+                            rrTF.emplace_back(hitRR);
+                            dQdxTF.emplace_back(hitQ/hitdx);
                         }
                     }
-
-                    dQdxTF.emplace_back(thisdQdx);
-                    rrTF.emplace_back(thisRR);
-                    qTF.emplace_back(thisQ);
                 }
 
                 // Cluster energy (sum over all hits)
@@ -528,6 +534,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "startTime", m_startTime));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endTime", m_endTime));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceId", &sliceIdVect));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "pfoId", &pfoIdVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nuVtxX", &nuVtxXVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nuVtxY", &nuVtxYVect));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "nuVtxZ", &nuVtxZVect));
@@ -568,6 +575,9 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endPytrkfit", &endPyVectTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "endPztrkfit", &endPzVectTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "lengthtrkfit", &lengthVectTF));
+    // Vector of the calorimetry objects...
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsSlcIdtrkfit", &slcIdTF));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsPfoIdtrkfit", &pfoIdTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsRRtrkfit", &rrTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsQtrkfit", &qTF));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "ptsdQdxtrkfit", &dQdxTF));
