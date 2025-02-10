@@ -202,7 +202,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
 
     IntVector slcIdTF; // Slice ID for this track for matching
     IntVector pfoIdTF; // PFO ID for this track for matching
-    FloatVector QdxTF; // dQ/dx -> to be turned into dE/dx with calibration
+    FloatVector dQdxTF; // dQ/dx -> to be turned into dE/dx with calibration
     FloatVector rrTF; // residual range for the hit
     FloatVector qTF; // Charge in the hit
 
