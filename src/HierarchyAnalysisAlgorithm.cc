@@ -327,14 +327,18 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 // -- We'll use the same vertex as above.
 		        lar_content::LArTrackStateVector trackStateVector;
                 bool trackStateSuccess=false;
-		        pandora::IntVector indexVector;
+		        //pandora::IntVector indexVector;
                 try {
+                    /*
 		            lar_content::LArPfoHelper::GetSlidingFitTrajectory( pointVector,
                                                                         vertex,
                                                                         m_slidingFitHalfWindow,
                                                                         m_pixelPitch,
                                                                         trackStateVector,
                                                                         &indexVector);
+                    */
+                    lar_content::LArPfoHelper::GetSlidingFitTrajectory( pPfo, *vertices.begin(), m_slidingFitHalfWindow,
+                                                                        m_pixelPitch, trackStateVector );
 	            	trackStateSuccess=true;
                 }
                 catch (const pandora::StatusCodeException&) {
@@ -448,7 +452,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                         lengthSoFar+=std::sqrt( trackState.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
                         if ( idxPt > 0 ) {
                             const lar_content::LArTrackState& trackStatePrev = trackStateVector.at(idxPt-1);
-                            float hitQ = trackState.GetCaloHit()->GetInputEnergy();
+                            float hitQ = trackState.GetEnergy();
                             float hitRR = trklength - lengthSoFar;
                             float hitdx = std::sqrt( trackStatePrev.GetPosition().GetDistanceSquared( trackStateNext.GetPosition() ) );
                             // Do not do any lifetime, spacecharge, diffusion, etc. corrections... at least yet
