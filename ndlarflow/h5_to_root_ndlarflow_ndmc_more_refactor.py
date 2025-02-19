@@ -20,7 +20,7 @@ useFinalHits=False
 
 ### ------------------ DO NOT CHANGE BELOW HERE
 
-MaxArrayDepth=int(50000)
+MaxArrayDepth=int(10000)
 isWritten=False
 
 promptKey='prompt'
@@ -163,7 +163,6 @@ for ievt in range(eventsToRun):
             max_entries = len(other_dict[key])
 
     nSubEvents = int(max_entries/MaxArrayDepth)+1
-    print(max_entries,nSubEvents)
     for idxSubEvent in range(nSubEvents):
         first = MaxArrayDepth*idxSubEvent
         last = MaxArrayDepth*(idxSubEvent+1)
