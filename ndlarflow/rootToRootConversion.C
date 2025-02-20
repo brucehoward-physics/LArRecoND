@@ -62,8 +62,8 @@ void rootToRootConversion(
     Float_t in_mcp_endy[MaxDepthArray];
     Float_t in_mcp_endz[MaxDepthArray];
     Float_t in_mcp_length[MaxDepthArray];
-    //Double_t in_mcp_tstart[MaxDepthArray];
-    //Double_t in_mcp_tend[MaxDepthArray];
+    Double_t in_mcp_tstart[MaxDepthArray];
+    Double_t in_mcp_tend[MaxDepthArray];
     Int_t   in_mcp_pdg[MaxDepthArray];
     Long_t  in_mcp_nuid[MaxDepthArray];
     Long_t  in_mcp_vertex_id[MaxDepthArray];
@@ -77,7 +77,7 @@ void rootToRootConversion(
     Int_t   in_mode[MaxDepthArrayNu];
     Int_t   in_ccnc[MaxDepthArrayNu];
     Float_t in_nue[MaxDepthArrayNu];
-    //Double_t in_nuspillt[MaxDepthArrayNu];
+    Double_t in_nuspillt[MaxDepthArrayNu];
     Float_t in_nupx[MaxDepthArrayNu];
     Float_t in_nupy[MaxDepthArrayNu];
     Float_t in_nupz[MaxDepthArrayNu];
@@ -122,8 +122,8 @@ void rootToRootConversion(
     tr->SetBranchAddress("mcp_endy", &in_mcp_endy);
     tr->SetBranchAddress("mcp_endz", &in_mcp_endz);
     tr->SetBranchAddress("mcp_length", &in_mcp_length);
-    //tr->SetBranchAddress("mcp_tstart", &in_mcp_tstart);
-    //tr->SetBranchAddress("mcp_tend", &in_mcp_tend);
+    tr->SetBranchAddress("mcp_tstart", &in_mcp_tstart);
+    tr->SetBranchAddress("mcp_tend", &in_mcp_tend);
     tr->SetBranchAddress("mcp_pdg", &in_mcp_pdg);
     tr->SetBranchAddress("mcp_nuid", &in_mcp_nuid);
     tr->SetBranchAddress("mcp_vertex_id", &in_mcp_vertex_id);
@@ -137,7 +137,7 @@ void rootToRootConversion(
     tr->SetBranchAddress("mode", &in_mode);
     tr->SetBranchAddress("ccnc", &in_ccnc);
     tr->SetBranchAddress("nue", &in_nue);
-    //tr->SetBranchAddress("nuspillt", &in_nuspillt);
+    tr->SetBranchAddress("nuspillt", &in_nuspillt);
     tr->SetBranchAddress("nupx", &in_nupx);
     tr->SetBranchAddress("nupy", &in_nupy);
     tr->SetBranchAddress("nupz", &in_nupz);
@@ -187,13 +187,16 @@ void rootToRootConversion(
     std::vector<float> mcp_endx;
     std::vector<float> mcp_endy;
     std::vector<float> mcp_endz;
-    
+    std::vector<double> mcp_tstart;
+    std::vector<double> mcp_tend;
+
     std::vector<float> nuvtxx;
     std::vector<float> nuvtxy;
     std::vector<float> nuvtxz;
     std::vector<float> nupx;
     std::vector<float> nupy;
     std::vector<float> nupz;
+    std::vector<double> nuspillt;
     std::vector<float> nue;
     std::vector<long> nuID;
     std::vector<long> vertex_id;
@@ -239,12 +242,15 @@ void rootToRootConversion(
     outgoingTree->Branch("mcp_endx", &mcp_endx);
     outgoingTree->Branch("mcp_endy", &mcp_endy);
     outgoingTree->Branch("mcp_endz", &mcp_endz);
+    outgoingTree->Branch("mcp_tstart", &mcp_tstart);
+    outgoingTree->Branch("mcp_tend", &mcp_tend);
     outgoingTree->Branch("nuvtxx", &nuvtxx);
     outgoingTree->Branch("nuvtxy", &nuvtxy);
     outgoingTree->Branch("nuvtxz", &nuvtxz);
     outgoingTree->Branch("nupx", &nupx);
     outgoingTree->Branch("nupy", &nupy);
     outgoingTree->Branch("nupz", &nupz);
+    outgoingTree->Branch("nuspillt", &nuspillt);
     outgoingTree->Branch("nue", &nue);
     outgoingTree->Branch("nuID", &nuID);
     outgoingTree->Branch("vertex_id", &vertex_id);
@@ -348,6 +354,8 @@ void rootToRootConversion(
             mcp_endx.clear();
             mcp_endy.clear();
             mcp_endz.clear();
+            mcp_tstart.clear();
+            mcp_tend.clear();
             nuvtxx.clear();
             nuvtxy.clear();
             nuvtxz.clear();
@@ -360,6 +368,7 @@ void rootToRootConversion(
             nuPDG.clear();
             mode.clear();
             ccnc.clear();
+            nuspillt.clear();
             
             sum_matches=0;
             all_matches.clear();
@@ -428,6 +437,8 @@ void rootToRootConversion(
             mcp_endx.push_back(in_mcp_endx[idxMCPart]);
             mcp_endy.push_back(in_mcp_endy[idxMCPart]);
             mcp_endz.push_back(in_mcp_endz[idxMCPart]);
+            mcp_tstart.push_back(in_mcp_tstart[idxMCPart]);
+            mcp_tend.push_back(in_mcp_tend[idxMCPart]);
         }
 
         // Neutrinos
@@ -444,6 +455,7 @@ void rootToRootConversion(
             nuPDG.push_back(in_nuPDG[idxNu]);
             mode.push_back(in_mode[idxNu]);
             ccnc.push_back(in_ccnc[idxNu]);
+            nuspillt.push_back(in_nuspillt[idxNu]);
         }
     }
 
