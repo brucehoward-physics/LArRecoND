@@ -68,6 +68,7 @@ def main(argv=None):
             overrideOutname=0
 
     MaxArrayDepth=int(10000)
+    MaxArrayDepthData=int(100000)
     isWritten=False
 
     promptKey='prompt'
@@ -226,27 +227,41 @@ def main(argv=None):
                 if len(other_dict[key]) > max_entries:
                     max_entries = len(other_dict[key])
 
-            nSubEvents = int(max_entries/MaxArrayDepth)+1
-            for idxSubEvent in range(nSubEvents):
-                first = MaxArrayDepth*idxSubEvent
-                last = MaxArrayDepth*(idxSubEvent+1)
-                event_dict['subevent'] = np.array([idxSubEvent], dtype='int32')
-                for key in other_dict.keys():
-                    event_dict[key] = awk.values_astype(awk.Array([other_dict[key][first:last]]),other_dict[key].dtype)
-                if isWritten==False:
-                    fout = ur.recreate(outname)
-                    fout['events'] = event_dict
-                    isWritten=True
-                else:
-                    fout['events'].extend(event_dict)
+            if useData==True:
+                nSubEvents = int(max_entries/MaxArrayDepthData)+1
+                for idxSubEvent in range(nSubEvents):
+                    first = MaxArrayDepth*idxSubEvent
+                    last = MaxArrayDepth*(idxSubEvent+1)
+                    event_dict['subevent'] = np.array([idxSubEvent], dtype='int32')
+                    for key in other_dict.keys():
+                        event_dict[key] = awk.values_astype(awk.Array([other_dict[key][first:last]]),other_dict[key].dtype)
+                    if isWritten==False:
+                        fout = ur.recreate(outname)
+                        fout['events'] = event_dict
+                        isWritten=True
+                    else:
+                        fout['events'].extend(event_dict)
+            else:
+                nSubEvents = int(max_entries/MaxArrayDepth)+1
+                for idxSubEvent in range(nSubEvents):
+                    first = MaxArrayDepth*idxSubEvent
+                    last = MaxArrayDepth*(idxSubEvent+1)
+                    event_dict['subevent'] = np.array([idxSubEvent], dtype='int32')
+                    for key in other_dict.keys():
+                        event_dict[key] = awk.values_astype(awk.Array([other_dict[key][first:last]]),other_dict[key].dtype)
+                    if isWritten==False:
+                        fout = ur.recreate(outname)
+                        fout['events'] = event_dict
+                        isWritten=True
+                    else:
+                        fout['events'].extend(event_dict)
 
-            if useData==False:
-                del packetFrac
-                del particleID
-                del particleIDLocal
-                del pdgHit
-                del interactionIndex
-                del trackID
+                    del packetFrac
+                    del particleID
+                    del particleIDLocal
+                    del pdgHit
+                    del interactionIndex
+                    del trackID
 
         fout.close()
         print('end of code')
