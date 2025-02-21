@@ -22,7 +22,7 @@ def printUsage():
     print('IsData      [OPTIONAL, DEFAULT = 0, is MC]:       1 = Data, otherwise = MC')
     print('IsFinalHits [OPTIONAL, DEFAULT = 0, prompt hits]: 1 = use "final" hits, otherwise = "prompt"')
     print('Is2x2       [OPTIONAL, DEFAULT = 0, is NDLAr]:    1 = use 2x2 file customizations, 0 = use NDLAr file customizations')
-    print('OutName     [OPTIONAL, DEFAULT = input[0]+stuff]: string for an output file name if you want to override.')
+    print('OutName     [OPTIONAL, DEFAULT = input[0]+stuff]: string for an output file name if you want to override. Note that default writes to current directory.')
     print('')
 
 def main(argv=None):
