@@ -255,13 +255,12 @@ def main(argv=None):
                         isWritten=True
                     else:
                         fout['events'].extend(event_dict)
-
-                    del packetFrac
-                    del particleID
-                    del particleIDLocal
-                    del pdgHit
-                    del interactionIndex
-                    del trackID
+                del packetFrac
+                del particleID
+                del particleIDLocal
+                del pdgHit
+                del interactionIndex
+                del trackID
 
         fout.close()
         print('end of code')
