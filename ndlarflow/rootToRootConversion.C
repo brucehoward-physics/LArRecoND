@@ -12,6 +12,7 @@
 // NB: this is not so elegant for a first pass, but it seems to work
 
 void rootToRootConversion(
+  const bool isMC=true,
   const std::string fname="MicroProdN3p1_NDLAr_2E18_FHC.flow.nu.0000001.FLOW.hdf5_hits_uproot.root",
   const std::string outname="MicroProdN3p1_NDLAr_2E18_FHC.flow.nu.0000001.FLOW.hdf5_hits.root" )
 {
@@ -24,7 +25,8 @@ void rootToRootConversion(
 
     TFile *f = new TFile(fname.c_str(),"read");
     const int MaxDepthArray = 10000;
-    const int MaxDepthArrayNu = 500;
+    const int MaxDepthArrayMC = isMC ? MaxDepthArray : 1;
+    const int MaxDepthArrayNu = isMC ? 500 : 1;
 
     // Get the data products FROM the tree
     int in_run, in_subrun, in_event, in_subevent, in_event_start_t, in_event_end_t, in_unix_ts;
@@ -40,44 +42,40 @@ void rootToRootConversion(
     Float_t in_E[MaxDepthArray];
 
     // Hit truth (currently cappped at 10 per hit)
-    int     nmatchesinsubevent;
-    Float_t packetFrac[MaxDepthArray];
-    Long_t  particleID[MaxDepthArray];
-    Long_t  particleIDLocal[MaxDepthArray];
-    Int_t   pdg[MaxDepthArray];
-    Long_t  vertexID[MaxDepthArray];
-    Long_t  segmentID[MaxDepthArray];
+    int     nmatchesinsubevent(0);
+    Float_t packetFrac[MaxDepthArrayMC];
+    Long_t  particleID[MaxDepthArrayMC];
+    Long_t  particleIDLocal[MaxDepthArrayMC];
+    Int_t   pdg[MaxDepthArrayMC];
+    Long_t  vertexID[MaxDepthArrayMC];
+    Long_t  segmentID[MaxDepthArrayMC];
 
     // MCP
     // TODO: we should probably save the max number of MCParticles and neutrinos as well, for now we'll assume 10*NMaxHits which is hopefully okay but not guaranteed
-    int     nmcpinsubevent;
-    Float_t in_mcp_energy[MaxDepthArray];
-    Float_t in_mcp_px[MaxDepthArray];
-    Float_t in_mcp_py[MaxDepthArray];
-    Float_t in_mcp_pz[MaxDepthArray];
-    Float_t in_mcp_startx[MaxDepthArray];
-    Float_t in_mcp_starty[MaxDepthArray];
-    Float_t in_mcp_startz[MaxDepthArray];
-    Float_t in_mcp_endx[MaxDepthArray];
-    Float_t in_mcp_endy[MaxDepthArray];
-    Float_t in_mcp_endz[MaxDepthArray];
-    Float_t in_mcp_length[MaxDepthArray];
-    Double_t in_mcp_tstart[MaxDepthArray];
-    Double_t in_mcp_tend[MaxDepthArray];
-    Int_t   in_mcp_pdg[MaxDepthArray];
-    Long_t  in_mcp_nuid[MaxDepthArray];
-    Long_t  in_mcp_vertex_id[MaxDepthArray];
-    Long_t  in_mcp_idLocal[MaxDepthArray];
-    Long_t  in_mcp_id[MaxDepthArray];
-    Long_t  in_mcp_mother[MaxDepthArray];
+    int     nmcpinsubevent(0);
+    Float_t in_mcp_energy[MaxDepthArrayMC];
+    Float_t in_mcp_px[MaxDepthArrayMC];
+    Float_t in_mcp_py[MaxDepthArrayMC];
+    Float_t in_mcp_pz[MaxDepthArrayMC];
+    Float_t in_mcp_startx[MaxDepthArrayMC];
+    Float_t in_mcp_starty[MaxDepthArrayMC];
+    Float_t in_mcp_startz[MaxDepthArrayMC];
+    Float_t in_mcp_endx[MaxDepthArrayMC];
+    Float_t in_mcp_endy[MaxDepthArrayMC];
+    Float_t in_mcp_endz[MaxDepthArrayMC];
+    Int_t   in_mcp_pdg[MaxDepthArrayMC];
+    Long_t  in_mcp_nuid[MaxDepthArrayMC];
+    Long_t  in_mcp_vertex_id[MaxDepthArrayMC];
+    Long_t  in_mcp_idLocal[MaxDepthArrayMC];
+    Long_t  in_mcp_id[MaxDepthArrayMC];
+    Long_t  in_mcp_mother[MaxDepthArrayMC];
     // Neutrinos: see caveat above, but here we'll have a hard cap at 500
-    int     nnuinsubevent;
+    int     nnuinsubevent(0);
     Long_t  in_nuID[MaxDepthArrayNu];
     Int_t   in_nuPDG[MaxDepthArrayNu];
     Int_t   in_mode[MaxDepthArrayNu];
     Int_t   in_ccnc[MaxDepthArrayNu];
     Float_t in_nue[MaxDepthArrayNu];
-    Double_t in_nuspillt[MaxDepthArrayNu];
     Float_t in_nupx[MaxDepthArrayNu];
     Float_t in_nupy[MaxDepthArrayNu];
     Float_t in_nupz[MaxDepthArrayNu];
@@ -103,53 +101,51 @@ void rootToRootConversion(
     tr->SetBranchAddress("E",&in_E);
     tr->SetBranchAddress("matches",&matches);
 
-    tr->SetBranchAddress("hit_packetFrac",&packetFrac);
-    tr->SetBranchAddress("hit_particleID",&particleID);
-    tr->SetBranchAddress("hit_particleIDLocal",&particleIDLocal);
-    tr->SetBranchAddress("hit_pdg",&pdg);
-    tr->SetBranchAddress("hit_vertexID",&vertexID);
-    tr->SetBranchAddress("hit_segmentID",&segmentID);
-    tr->SetBranchAddress("nhit_packetFrac",&nmatchesinsubevent);
+    if ( isMC ) {
+        tr->SetBranchAddress("hit_packetFrac",&packetFrac);
+        tr->SetBranchAddress("hit_particleID",&particleID);
+        tr->SetBranchAddress("hit_particleIDLocal",&particleIDLocal);
+        tr->SetBranchAddress("hit_pdg",&pdg);
+        tr->SetBranchAddress("hit_vertexID",&vertexID);
+        tr->SetBranchAddress("hit_segmentID",&segmentID);
+        tr->SetBranchAddress("nhit_packetFrac",&nmatchesinsubevent);
 
-    tr->SetBranchAddress("mcp_energy", &in_mcp_energy);
-    tr->SetBranchAddress("mcp_px", &in_mcp_px);
-    tr->SetBranchAddress("mcp_py", &in_mcp_py);
-    tr->SetBranchAddress("mcp_pz", &in_mcp_pz);
-    tr->SetBranchAddress("mcp_startx", &in_mcp_startx);
-    tr->SetBranchAddress("mcp_starty", &in_mcp_starty);
-    tr->SetBranchAddress("mcp_startz", &in_mcp_startz);
-    tr->SetBranchAddress("mcp_endx", &in_mcp_endx);
-    tr->SetBranchAddress("mcp_endy", &in_mcp_endy);
-    tr->SetBranchAddress("mcp_endz", &in_mcp_endz);
-    tr->SetBranchAddress("mcp_length", &in_mcp_length);
-    tr->SetBranchAddress("mcp_tstart", &in_mcp_tstart);
-    tr->SetBranchAddress("mcp_tend", &in_mcp_tend);
-    tr->SetBranchAddress("mcp_pdg", &in_mcp_pdg);
-    tr->SetBranchAddress("mcp_nuid", &in_mcp_nuid);
-    tr->SetBranchAddress("mcp_vertex_id", &in_mcp_vertex_id);
-    tr->SetBranchAddress("mcp_idLocal", &in_mcp_idLocal);
-    tr->SetBranchAddress("mcp_id", &in_mcp_id);
-    tr->SetBranchAddress("mcp_mother", &in_mcp_mother);
-    tr->SetBranchAddress("nmcp_energy",&nmcpinsubevent);
+        tr->SetBranchAddress("mcp_energy", &in_mcp_energy);
+        tr->SetBranchAddress("mcp_px", &in_mcp_px);
+        tr->SetBranchAddress("mcp_py", &in_mcp_py);
+        tr->SetBranchAddress("mcp_pz", &in_mcp_pz);
+        tr->SetBranchAddress("mcp_startx", &in_mcp_startx);
+        tr->SetBranchAddress("mcp_starty", &in_mcp_starty);
+        tr->SetBranchAddress("mcp_startz", &in_mcp_startz);
+        tr->SetBranchAddress("mcp_endx", &in_mcp_endx);
+        tr->SetBranchAddress("mcp_endy", &in_mcp_endy);
+        tr->SetBranchAddress("mcp_endz", &in_mcp_endz);
+        tr->SetBranchAddress("mcp_pdg", &in_mcp_pdg);
+        tr->SetBranchAddress("mcp_nuid", &in_mcp_nuid);
+        tr->SetBranchAddress("mcp_vertex_id", &in_mcp_vertex_id);
+        tr->SetBranchAddress("mcp_idLocal", &in_mcp_idLocal);
+        tr->SetBranchAddress("mcp_id", &in_mcp_id);
+        tr->SetBranchAddress("mcp_mother", &in_mcp_mother);
+        tr->SetBranchAddress("nmcp_energy",&nmcpinsubevent);
 
-    tr->SetBranchAddress("nuID", &in_nuID); // both nuID and vertex_id appear to use this value...
-    tr->SetBranchAddress("nuPDG", &in_nuPDG);
-    tr->SetBranchAddress("mode", &in_mode);
-    tr->SetBranchAddress("ccnc", &in_ccnc);
-    tr->SetBranchAddress("nue", &in_nue);
-    tr->SetBranchAddress("nuspillt", &in_nuspillt);
-    tr->SetBranchAddress("nupx", &in_nupx);
-    tr->SetBranchAddress("nupy", &in_nupy);
-    tr->SetBranchAddress("nupz", &in_nupz);
-    tr->SetBranchAddress("nuvtxx", &in_nuvtxx);
-    tr->SetBranchAddress("nuvtxy", &in_nuvtxy);
-    tr->SetBranchAddress("nuvtxz", &in_nuvtxz);
-    tr->SetBranchAddress("nnuID",&nnuinsubevent);
+        tr->SetBranchAddress("nuID", &in_nuID); // both nuID and vertex_id appear to use this value...
+        tr->SetBranchAddress("nuPDG", &in_nuPDG);
+        tr->SetBranchAddress("mode", &in_mode);
+        tr->SetBranchAddress("ccnc", &in_ccnc);
+        tr->SetBranchAddress("nue", &in_nue);
+        tr->SetBranchAddress("nupx", &in_nupx);
+        tr->SetBranchAddress("nupy", &in_nupy);
+        tr->SetBranchAddress("nupz", &in_nupz);
+        tr->SetBranchAddress("nuvtxx", &in_nuvtxx);
+        tr->SetBranchAddress("nuvtxy", &in_nuvtxy);
+        tr->SetBranchAddress("nuvtxz", &in_nuvtxz);
+        tr->SetBranchAddress("nnuID",&nnuinsubevent);
+    }
 
     long sum=0;
-    
+
     long NEvents = tr->GetEntries();
-    
+
     std::cout << "Loaded in tree with " << NEvents << " entries." << std::endl;
 
     // OUTPUT TREE
@@ -173,7 +169,6 @@ void rootToRootConversion(
     std::vector<float> mcp_px;
     std::vector<float> mcp_py;
     std::vector<float> mcp_pz;
-    std::vector<float> mcp_length;
     std::vector<long> mcp_id;
     std::vector<long> mcp_idLocal;
     std::vector<long> mcp_nuid;
@@ -187,8 +182,6 @@ void rootToRootConversion(
     std::vector<float> mcp_endx;
     std::vector<float> mcp_endy;
     std::vector<float> mcp_endz;
-    std::vector<double> mcp_tstart;
-    std::vector<double> mcp_tend;
 
     std::vector<float> nuvtxx;
     std::vector<float> nuvtxy;
@@ -196,7 +189,6 @@ void rootToRootConversion(
     std::vector<float> nupx;
     std::vector<float> nupy;
     std::vector<float> nupz;
-    std::vector<double> nuspillt;
     std::vector<float> nue;
     std::vector<long> nuID;
     std::vector<long> vertex_id;
@@ -219,44 +211,42 @@ void rootToRootConversion(
     outgoingTree->Branch("ts", &ts);
     outgoingTree->Branch("E", &E);
     outgoingTree->Branch("charge", &charge);
-    outgoingTree->Branch("hit_pdg", &hit_pdg);
-    outgoingTree->Branch("hit_segmentID", &hit_segmentID);
-    outgoingTree->Branch("hit_particleID", &hit_particleID);
-    outgoingTree->Branch("hit_particleIDLocal", &hit_particleIDLocal);
-    outgoingTree->Branch("hit_vertexID", &hit_vertexID);
-    outgoingTree->Branch("hit_packetFrac", &hit_packetFrac);
-    outgoingTree->Branch("mcp_px", &mcp_px);
-    outgoingTree->Branch("mcp_py", &mcp_py);
-    outgoingTree->Branch("mcp_pz", &mcp_pz);
-    outgoingTree->Branch("mcp_length", &mcp_length);
-    outgoingTree->Branch("mcp_id", &mcp_id);
-    outgoingTree->Branch("mcp_idLocal", &mcp_idLocal);
-    outgoingTree->Branch("mcp_nuid", &mcp_nuid);
-    outgoingTree->Branch("mcp_vertex_id", &mcp_vertex_id);
-    outgoingTree->Branch("mcp_pdg", &mcp_pdg);
-    outgoingTree->Branch("mcp_mother", &mcp_mother);
-    outgoingTree->Branch("mcp_energy", &mcp_energy);
-    outgoingTree->Branch("mcp_startx", &mcp_startx);
-    outgoingTree->Branch("mcp_starty", &mcp_starty);
-    outgoingTree->Branch("mcp_startz", &mcp_startz);
-    outgoingTree->Branch("mcp_endx", &mcp_endx);
-    outgoingTree->Branch("mcp_endy", &mcp_endy);
-    outgoingTree->Branch("mcp_endz", &mcp_endz);
-    outgoingTree->Branch("mcp_tstart", &mcp_tstart);
-    outgoingTree->Branch("mcp_tend", &mcp_tend);
-    outgoingTree->Branch("nuvtxx", &nuvtxx);
-    outgoingTree->Branch("nuvtxy", &nuvtxy);
-    outgoingTree->Branch("nuvtxz", &nuvtxz);
-    outgoingTree->Branch("nupx", &nupx);
-    outgoingTree->Branch("nupy", &nupy);
-    outgoingTree->Branch("nupz", &nupz);
-    outgoingTree->Branch("nuspillt", &nuspillt);
-    outgoingTree->Branch("nue", &nue);
-    outgoingTree->Branch("nuID", &nuID);
-    outgoingTree->Branch("vertex_id", &vertex_id);
-    outgoingTree->Branch("nuPDG", &nuPDG);
-    outgoingTree->Branch("mode", &mode);
-    outgoingTree->Branch("ccnc", &ccnc);
+    if ( isMC ) {
+        outgoingTree->Branch("hit_pdg", &hit_pdg);
+        outgoingTree->Branch("hit_segmentID", &hit_segmentID);
+        outgoingTree->Branch("hit_particleID", &hit_particleID);
+        outgoingTree->Branch("hit_particleIDLocal", &hit_particleIDLocal);
+        outgoingTree->Branch("hit_vertexID", &hit_vertexID);
+        outgoingTree->Branch("hit_packetFrac", &hit_packetFrac);
+        outgoingTree->Branch("mcp_px", &mcp_px);
+        outgoingTree->Branch("mcp_py", &mcp_py);
+        outgoingTree->Branch("mcp_pz", &mcp_pz);
+        outgoingTree->Branch("mcp_id", &mcp_id);
+        outgoingTree->Branch("mcp_idLocal", &mcp_idLocal);
+        outgoingTree->Branch("mcp_nuid", &mcp_nuid);
+        outgoingTree->Branch("mcp_vertex_id", &mcp_vertex_id);
+        outgoingTree->Branch("mcp_pdg", &mcp_pdg);
+        outgoingTree->Branch("mcp_mother", &mcp_mother);
+        outgoingTree->Branch("mcp_energy", &mcp_energy);
+        outgoingTree->Branch("mcp_startx", &mcp_startx);
+        outgoingTree->Branch("mcp_starty", &mcp_starty);
+        outgoingTree->Branch("mcp_startz", &mcp_startz);
+        outgoingTree->Branch("mcp_endx", &mcp_endx);
+        outgoingTree->Branch("mcp_endy", &mcp_endy);
+        outgoingTree->Branch("mcp_endz", &mcp_endz);
+        outgoingTree->Branch("nuvtxx", &nuvtxx);
+        outgoingTree->Branch("nuvtxy", &nuvtxy);
+        outgoingTree->Branch("nuvtxz", &nuvtxz);
+        outgoingTree->Branch("nupx", &nupx);
+        outgoingTree->Branch("nupy", &nupy);
+        outgoingTree->Branch("nupz", &nupz);
+        outgoingTree->Branch("nue", &nue);
+        outgoingTree->Branch("nuID", &nuID);
+        outgoingTree->Branch("vertex_id", &vertex_id);
+        outgoingTree->Branch("nuPDG", &nuPDG);
+        outgoingTree->Branch("mode", &mode);
+        outgoingTree->Branch("ccnc", &ccnc);
+    }
 
     int thisRun=0;
     int thisSubRun=0;
@@ -282,46 +272,48 @@ void rootToRootConversion(
             thisEvent = in_event;
         }
         if ( idx > 0 && ( (in_run!=thisRun || in_subrun!=thisSubRun || in_event!=thisEvent) || idx==NEvents ) ) {
-            // Something has changed... finish with the matches, fill the tree, and reset
-            // Vectors of matches
-            if ( sum_matches!=all_hit_packetFrac.size() ){
-                std::cout << "WARNING!!! For R" << thisRun << ", S" << thisSubRun << ", E"
-                          << thisEvent << " -- the summed number of matches expected (" << sum_matches << ") "
-                          << "does **NOT** match the size of the packetFrac vector (" << all_hit_packetFrac.size()
-                          << "). This is a sign of trouble." << std::endl;
-            }
-            unsigned long matchIndex = 0;
-            std::vector<int>   this_hit_pdg;
-            std::vector<long>  this_hit_segmentID;
-            std::vector<long>  this_hit_particleID;
-            std::vector<long>  this_hit_particleIDLocal;
-            std::vector<long>  this_hit_vertexID;
-            std::vector<float> this_hit_packetFrac;
-            for ( unsigned int idxMatch=0; idxMatch<=(unsigned int)all_hit_packetFrac.size(); ++idxMatch ){
-                if( this_hit_pdg.size() == (unsigned int)all_matches[matchIndex] || idxMatch==(unsigned int)all_hit_packetFrac.size()) {
-                    hit_pdg.push_back( this_hit_pdg );
-                    hit_segmentID.push_back( this_hit_segmentID );
-                    hit_particleID.push_back( this_hit_particleID );
-                    hit_particleIDLocal.push_back( this_hit_particleIDLocal );
-                    hit_vertexID.push_back( this_hit_vertexID );
-                    hit_packetFrac.push_back( this_hit_packetFrac );
-                    // mini-reset
-                    matchIndex+=1;
-                    this_hit_pdg.clear();
-                    this_hit_segmentID.clear();
-                    this_hit_particleID.clear();
-                    this_hit_particleIDLocal.clear();
-                    this_hit_vertexID.clear();
-                    this_hit_packetFrac.clear();
-                    // break if == end
-                    if ( idxMatch == all_hit_packetFrac.size() ) break;
+            if ( isMC ) {
+                // Something has changed... finish with the matches, fill the tree, and reset
+                // Vectors of matches
+                if ( sum_matches!=all_hit_packetFrac.size() ){
+                    std::cout << "WARNING!!! For R" << thisRun << ", S" << thisSubRun << ", E"
+                            << thisEvent << " -- the summed number of matches expected (" << sum_matches << ") "
+                            << "does **NOT** match the size of the packetFrac vector (" << all_hit_packetFrac.size()
+                            << "). This is a sign of trouble." << std::endl;
                 }
-                this_hit_pdg.push_back(all_hit_pdg[idxMatch]);
-                this_hit_segmentID.push_back(all_hit_segmentID[idxMatch]);
-                this_hit_particleID.push_back(all_hit_particleID[idxMatch]);
-                this_hit_particleIDLocal.push_back(all_hit_particleIDLocal[idxMatch]);
-                this_hit_vertexID.push_back(all_hit_vertexID[idxMatch]);
-                this_hit_packetFrac.push_back(all_hit_packetFrac[idxMatch]);
+                unsigned long matchIndex = 0;
+                std::vector<int>   this_hit_pdg;
+                std::vector<long>  this_hit_segmentID;
+                std::vector<long>  this_hit_particleID;
+                std::vector<long>  this_hit_particleIDLocal;
+                std::vector<long>  this_hit_vertexID;
+                std::vector<float> this_hit_packetFrac;
+                for ( unsigned int idxMatch=0; idxMatch<=(unsigned int)all_hit_packetFrac.size(); ++idxMatch ){
+                    if( this_hit_pdg.size() == (unsigned int)all_matches[matchIndex] || idxMatch==(unsigned int)all_hit_packetFrac.size()) {
+                        hit_pdg.push_back( this_hit_pdg );
+                        hit_segmentID.push_back( this_hit_segmentID );
+                        hit_particleID.push_back( this_hit_particleID );
+                        hit_particleIDLocal.push_back( this_hit_particleIDLocal );
+                        hit_vertexID.push_back( this_hit_vertexID );
+                        hit_packetFrac.push_back( this_hit_packetFrac );
+                        // mini-reset
+                        matchIndex+=1;
+                        this_hit_pdg.clear();
+                        this_hit_segmentID.clear();
+                        this_hit_particleID.clear();
+                        this_hit_particleIDLocal.clear();
+                        this_hit_vertexID.clear();
+                        this_hit_packetFrac.clear();
+                        // break if == end
+                        if ( idxMatch == all_hit_packetFrac.size() ) break;
+                    }
+                    this_hit_pdg.push_back(all_hit_pdg[idxMatch]);
+                    this_hit_segmentID.push_back(all_hit_segmentID[idxMatch]);
+                    this_hit_particleID.push_back(all_hit_particleID[idxMatch]);
+                    this_hit_particleIDLocal.push_back(all_hit_particleIDLocal[idxMatch]);
+                    this_hit_vertexID.push_back(all_hit_vertexID[idxMatch]);
+                    this_hit_packetFrac.push_back(all_hit_packetFrac[idxMatch]);
+                }
             }
             // Fill
             outgoingTree->Fill();
@@ -354,8 +346,6 @@ void rootToRootConversion(
             mcp_endx.clear();
             mcp_endy.clear();
             mcp_endz.clear();
-            mcp_tstart.clear();
-            mcp_tend.clear();
             nuvtxx.clear();
             nuvtxy.clear();
             nuvtxz.clear();
@@ -368,7 +358,6 @@ void rootToRootConversion(
             nuPDG.clear();
             mode.clear();
             ccnc.clear();
-            nuspillt.clear();
             
             sum_matches=0;
             all_matches.clear();
@@ -402,65 +391,65 @@ void rootToRootConversion(
             ts.push_back(in_ts[idxHit]);
             E.push_back(in_E[idxHit]);
             charge.push_back(in_charge[idxHit]);
-            all_matches.push_back(matches[idxHit]);
-            sum_matches+=(unsigned long)matches[idxHit];
+            if ( isMC ) {
+                all_matches.push_back(matches[idxHit]);
+                sum_matches+=(unsigned long)matches[idxHit];
+            }
         }
 
-        // Because the arrays of matches and hits need not be sync'ed, we'll fill up
-        //   vectors will all the info for the event here and then break it into sub-
-        //   vectors at the end of the event...
-        for ( unsigned int idxMatch=0; idxMatch<(unsigned int)nmatchesinsubevent; ++idxMatch ) {
-            all_hit_pdg.push_back(pdg[idxMatch]);
-            all_hit_segmentID.push_back(segmentID[idxMatch]);
-            all_hit_particleID.push_back(particleID[idxMatch]);
-            all_hit_particleIDLocal.push_back(particleIDLocal[idxMatch]);
-            all_hit_vertexID.push_back(vertexID[idxMatch]);
-            all_hit_packetFrac.push_back(packetFrac[idxMatch]);
-        }
+        if ( isMC ) {
+            // Because the arrays of matches and hits need not be sync'ed, we'll fill up
+            //   vectors will all the info for the event here and then break it into sub-
+            //   vectors at the end of the event...
+            for ( unsigned int idxMatch=0; idxMatch<(unsigned int)nmatchesinsubevent; ++idxMatch ) {
+                all_hit_pdg.push_back(pdg[idxMatch]);
+                all_hit_segmentID.push_back(segmentID[idxMatch]);
+                all_hit_particleID.push_back(particleID[idxMatch]);
+                all_hit_particleIDLocal.push_back(particleIDLocal[idxMatch]);
+                all_hit_vertexID.push_back(vertexID[idxMatch]);
+                all_hit_packetFrac.push_back(packetFrac[idxMatch]);
+            }
 
-        // MCParticles
-        for ( unsigned int idxMCPart=0; idxMCPart<(unsigned int)nmcpinsubevent; ++idxMCPart ) {
-            mcp_px.push_back(in_mcp_px[idxMCPart]);
-            mcp_py.push_back(in_mcp_py[idxMCPart]);
-            mcp_pz.push_back(in_mcp_pz[idxMCPart]);
-            mcp_length.push_back(in_mcp_length[idxMCPart]);
-            mcp_id.push_back(in_mcp_id[idxMCPart]);
-            mcp_idLocal.push_back(in_mcp_idLocal[idxMCPart]);
-            mcp_nuid.push_back(in_mcp_nuid[idxMCPart]);
-            mcp_vertex_id.push_back(in_mcp_vertex_id[idxMCPart]);
-            mcp_pdg.push_back(in_mcp_pdg[idxMCPart]);
-            mcp_mother.push_back(in_mcp_mother[idxMCPart]);
-            mcp_energy.push_back(in_mcp_energy[idxMCPart]);
-            mcp_startx.push_back(in_mcp_startx[idxMCPart]);
-            mcp_starty.push_back(in_mcp_starty[idxMCPart]);
-            mcp_startz.push_back(in_mcp_startz[idxMCPart]);
-            mcp_endx.push_back(in_mcp_endx[idxMCPart]);
-            mcp_endy.push_back(in_mcp_endy[idxMCPart]);
-            mcp_endz.push_back(in_mcp_endz[idxMCPart]);
-            mcp_tstart.push_back(in_mcp_tstart[idxMCPart]);
-            mcp_tend.push_back(in_mcp_tend[idxMCPart]);
-        }
+            // MCParticles
+            for ( unsigned int idxMCPart=0; idxMCPart<(unsigned int)nmcpinsubevent; ++idxMCPart ) {
+                mcp_px.push_back(in_mcp_px[idxMCPart]);
+                mcp_py.push_back(in_mcp_py[idxMCPart]);
+                mcp_pz.push_back(in_mcp_pz[idxMCPart]);
+                mcp_id.push_back(in_mcp_id[idxMCPart]);
+                mcp_idLocal.push_back(in_mcp_idLocal[idxMCPart]);
+                mcp_nuid.push_back(in_mcp_nuid[idxMCPart]);
+                mcp_vertex_id.push_back(in_mcp_vertex_id[idxMCPart]);
+                mcp_pdg.push_back(in_mcp_pdg[idxMCPart]);
+                mcp_mother.push_back(in_mcp_mother[idxMCPart]);
+                mcp_energy.push_back(in_mcp_energy[idxMCPart]);
+                mcp_startx.push_back(in_mcp_startx[idxMCPart]);
+                mcp_starty.push_back(in_mcp_starty[idxMCPart]);
+                mcp_startz.push_back(in_mcp_startz[idxMCPart]);
+                mcp_endx.push_back(in_mcp_endx[idxMCPart]);
+                mcp_endy.push_back(in_mcp_endy[idxMCPart]);
+                mcp_endz.push_back(in_mcp_endz[idxMCPart]);
+            }
 
-        // Neutrinos
-        for ( unsigned int idxNu=0; idxNu<(unsigned int)nnuinsubevent; ++idxNu ) {
-            nuvtxx.push_back(in_nuvtxx[idxNu]);
-            nuvtxy.push_back(in_nuvtxy[idxNu]);
-            nuvtxz.push_back(in_nuvtxz[idxNu]);
-            nupx.push_back(in_nupx[idxNu]);
-            nupy.push_back(in_nupy[idxNu]);
-            nupz.push_back(in_nupz[idxNu]);
-            nue.push_back(in_nue[idxNu]);
-            nuID.push_back(in_nuID[idxNu]);
-            vertex_id.push_back(in_nuID[idxNu]); // appears to be the same as nuID in current h5->ROOT script
-            nuPDG.push_back(in_nuPDG[idxNu]);
-            mode.push_back(in_mode[idxNu]);
-            ccnc.push_back(in_ccnc[idxNu]);
-            nuspillt.push_back(in_nuspillt[idxNu]);
+            // Neutrinos
+            for ( unsigned int idxNu=0; idxNu<(unsigned int)nnuinsubevent; ++idxNu ) {
+                nuvtxx.push_back(in_nuvtxx[idxNu]);
+                nuvtxy.push_back(in_nuvtxy[idxNu]);
+                nuvtxz.push_back(in_nuvtxz[idxNu]);
+                nupx.push_back(in_nupx[idxNu]);
+                nupy.push_back(in_nupy[idxNu]);
+                nupz.push_back(in_nupz[idxNu]);
+                nue.push_back(in_nue[idxNu]);
+                nuID.push_back(in_nuID[idxNu]);
+                vertex_id.push_back(in_nuID[idxNu]); // appears to be the same as nuID in current h5->ROOT script
+                nuPDG.push_back(in_nuPDG[idxNu]);
+                mode.push_back(in_mode[idxNu]);
+                ccnc.push_back(in_ccnc[idxNu]);
+            }
         }
     }
 
     outgoingTree->Write();
     outFile->Close();
-    
+
     std::cout << "DONE!" << std::endl;
 }
