@@ -99,9 +99,9 @@ void rootToRootConversion(
     tr->SetBranchAddress("ts",&in_ts);
     tr->SetBranchAddress("charge",&in_charge);
     tr->SetBranchAddress("E",&in_E);
-    tr->SetBranchAddress("matches",&matches);
 
     if ( isMC ) {
+        tr->SetBranchAddress("matches",&matches);
         tr->SetBranchAddress("hit_packetFrac",&packetFrac);
         tr->SetBranchAddress("hit_particleID",&particleID);
         tr->SetBranchAddress("hit_particleIDLocal",&particleIDLocal);
