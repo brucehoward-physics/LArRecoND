@@ -188,7 +188,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector sliceHitsY;
     FloatVector sliceHitsZ;
     FloatVector sliceHitsMatchWt;
-    IntVector sliceHitsPDGmc;
+    IntVector sliceHitsMatchPDG;
 
     // Vectors for track fit outputs
     IntVector trkpointsVectTF;
@@ -254,7 +254,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                     }
                 }
                 sliceHitsMatchWt.emplace_back( maxMatch );
-                sliceHitsPDGmc.emplace_back( maxMatchPDG );
+                sliceHitsMatchPDG.emplace_back( maxMatchPDG );
             }
         }
 
