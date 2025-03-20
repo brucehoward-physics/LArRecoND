@@ -254,6 +254,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
         LArHierarchyHelper::RecoHierarchy::NodeVector recoNodes;
         recoHierarchy.GetFlattenedNodes(pRoot, recoNodes);
 
+        int recoPfoId = -1;
+
         // Loop over the reco nodes
         for (const LArHierarchyHelper::RecoHierarchy::Node *pRecoNode : recoNodes)
         {
