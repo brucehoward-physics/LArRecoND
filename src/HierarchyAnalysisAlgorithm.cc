@@ -12,6 +12,7 @@
 
 #include "larpandoracontent/LArHelpers/LArClusterHelper.h"
 #include "larpandoracontent/LArHelpers/LArPfoHelper.h"
+#include "larpandoracontent/LArObjects/LArCaloHit.h"
 
 #include "TFile.h"
 #include "TTree.h"
@@ -244,8 +245,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
                 sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
                 // Try to get the MC info related to this CaloHit and return info on the best matching true particle to this hit
-                sliceHitsMatchWt.emplace_back( dynamic_cast<LArCaloHit*>(pCaloHit)->GetMCMatchWeight() );
-                sliceHitsMatchPDG.emplace_back( dynamic_cast<LArCaloHit*>(pCaloHit)->GetMCMatchPDG() );
+                sliceHitsMatchWt.emplace_back( dynamic_cast<lar_content::LArCaloHit*>(pCaloHit)->GetMCMatchWeight() );
+                sliceHitsMatchPDG.emplace_back( dynamic_cast<lar_content::LArCaloHit*>(pCaloHit)->GetMCMatchPDG() );
             }
         }
 
