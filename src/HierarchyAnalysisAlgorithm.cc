@@ -244,17 +244,8 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
                 sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
                 // Try to get the MC info related to this CaloHit and return info on the best matching true particle to this hit
-                pandora::MCParticleWeightMap matchMap = pCaloHit->GetMCParticleWeightMap();
-                float maxMatch = 0.;
-                int maxMatchPDG = 0;
-                for ( auto const &[key, val] : matchMap ) {
-                    if ( val > maxMatch ){
-                        maxMatch = val;
-                        maxMatchPDG = key->GetParticleId();
-                    }
-                }
-                sliceHitsMatchWt.emplace_back( maxMatch );
-                sliceHitsMatchPDG.emplace_back( maxMatchPDG );
+                sliceHitsMatchWt.emplace_back( dynamic_cast<LArCaloHit*>(pCaloHit)->GetMCMatchWeight() );
+                sliceHitsMatchPDG.emplace_back( dynamic_cast<LArCaloHit*>(pCaloHit)->GetMCMatchPDG() );
             }
         }
 
