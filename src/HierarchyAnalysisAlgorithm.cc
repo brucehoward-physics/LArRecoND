@@ -187,6 +187,9 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     FloatVector sliceHitsX;
     FloatVector sliceHitsY;
     FloatVector sliceHitsZ;
+    FloatVector sliceHitsMatchWt;
+    IntVector sliceHitsUIDmc;
+    IntVector sliceHitsPDGmc;
 
     // Vectors for track fit outputs
     IntVector trkpointsVectTF;
@@ -237,10 +240,25 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
 
             for ( const pandora::CaloHit* const pCaloHit : hits ) {
                 sliceHitsPfoId.emplace_back( thisPfoId );
-                    sliceHitsSlice.emplace_back( sliceId );
-                    sliceHitsX.emplace_back( pCaloHit->GetPositionVector().GetX() );
-                    sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
-                    sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
+                sliceHitsSlice.emplace_back( sliceId );
+                sliceHitsX.emplace_back( pCaloHit->GetPositionVector().GetX() );
+                sliceHitsY.emplace_back( pCaloHit->GetPositionVector().GetY() );
+                sliceHitsZ.emplace_back( pCaloHit->GetPositionVector().GetZ() );
+                // Try to get the MC info related to this CaloHit and return info on the best matching true particle to this hit
+                pandora::MCParticleWeightMap matchMap = pCaloHit->GetMCParticleWeightMap();
+                float maxMatch = 0.;
+                int maxMatchUID = 0;
+                int maxMatchPDG = 0;
+                for ( auto const &[key, val] : matchMap ) {
+                    if ( val > maxMatch ){
+                        maxMatch = val;
+                        maxMatchUID = key->GetUid();
+                        maxMatchPDG = key->GetParticleId();
+                    }
+                }
+                sliceHitsMatchWt.emplace_back( maxMatch );
+                sliceHitsUIDmc.emplace_back( maxMatchUID );
+                sliceHitsPDGmc.emplace_back( maxMatchPDG );
             }
         }
 
@@ -606,6 +624,9 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsX", &sliceHitsX));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsY", &sliceHitsY));
     PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsZ", &sliceHitsZ));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsMatchWt", &sliceHitsMatchWt));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsMatchUID", &sliceHitsMatchUID));
+    PANDORA_MONITORING_API(SetTreeVariable(this->GetPandora(), m_analysisTreeName.c_str(), "sliceHitsMatchPDG", &sliceHitsMatchPDG));
 
     PANDORA_MONITORING_API(FillTree(this->GetPandora(), m_analysisTreeName.c_str()));
 }
