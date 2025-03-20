@@ -411,8 +411,8 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
                 LArSPMC *larspmc = dynamic_cast<LArSPMC *>(larsp.get());
                 const std::vector<float> mcContribs = (*larspmc->m_hit_packetFrac)[isp];
                 const int biggestContribIndex = std::distance(mcContribs.begin(), std::max_element(mcContribs.begin(), mcContribs.end()));
-		const std::vector<long> hitPartIDVect = (*larspmc->m_hit_particleID)[isp];
-		trackID = (hitPartIDVect.size() > biggestContribIndex) ? hitPartIDVect[biggestContribIndex] : 0;
+                const std::vector<long> hitPartIDVect = (*larspmc->m_hit_particleID)[isp];
+                trackID = (hitPartIDVect.size() > biggestContribIndex) ? hitPartIDVect[biggestContribIndex] : 0;
 
                 // Due to the merging of hits, the contributions can sometimes add up to more than 1.
                 // Normalise first
@@ -422,9 +422,14 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
                 if (energyFrac > 1.f + std::numeric_limits<float>::epsilon())
                     energyFrac = 1.f;
 
+                // In this version we have added m_mcMatchWeight and m_mcMatchPDG to the LArCaloHit Parameters, let's fill that info
+                caloHitParameters.m_mcMatchWeight = energyFrac; // use the post-normalised weight
+                const std::vector<int> hitPDGVect = (*larspmc->m_hit_pdg)[isp];
+                caloHitParameters.m_mcMatchPDG = (hitPDGVect.size() > biggestContribIndex) ? hitPDGVect[biggestContribIndex] : 0;
+
                 if (std::find(larspmc->m_mcp_id->begin(), larspmc->m_mcp_id->end(), trackID) == larspmc->m_mcp_id->end())
                     std::cout << "Problem? Could not find MC particle with file ID " << trackID << std::endl;
-            }
+                }
 
             if (parameters.m_use3D)
                 PANDORA_THROW_RESULT_IF(
