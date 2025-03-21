@@ -288,9 +288,6 @@ bool EventSlicingThreeDTool::PassProximity(const Cluster *const pClusterInSlice,
     {
         for (const CaloHit *const pCaloHit1 : *(orderedList1.second))
         {
-            // !!!! TEMP
-            std::cout << "slicing hit " << pCaloHit1->GetMCMatchPDG() << ": " << pCaloHit1->GetMCMatchWeight() << std::endl;
-            ///////// !!
             const CartesianVector &positionVector1(pCaloHit1->GetPositionVector());
 
             for (const auto &orderedList2 : pCandidateCluster->GetOrderedCaloHitList())

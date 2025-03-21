@@ -97,6 +97,10 @@ StatusCode MasterThreeDAlgorithm::RunSlicing(const VolumeIdToHitListMap &volumeI
             if (!PandoraContentApi::IsAvailable(*this, pCaloHit))
                 continue;
 
+            // !!!! TEMP
+            std::cout << "slicing hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+            ///////// !!
+
             if (m_shouldRunSlicing)
             {
                 PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, this->Copy(m_pSlicingWorkerInstance, pCaloHit));
