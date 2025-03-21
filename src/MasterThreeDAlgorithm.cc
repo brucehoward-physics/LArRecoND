@@ -98,7 +98,7 @@ StatusCode MasterThreeDAlgorithm::RunSlicing(const VolumeIdToHitListMap &volumeI
                 continue;
 
             // !!!! TEMP
-            std::cout << "slicing hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+            //std::cout << "slicing hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
             ///////// !!
 
             if (m_shouldRunSlicing)

@@ -41,6 +41,10 @@ pandora::StatusCode PfoThreeDHitAssignmentAlgorithm::Run()
         if (!PandoraContentApi::IsAvailable(*this, pCaloHit))
             continue;
 
+        // !!!! TEMP
+        std::cout << "3dHitAssignment hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+        ///////// !!
+
         availableHits.emplace_back(pCaloHit);
         const CartesianVector pos3D = pCaloHit->GetPositionVector();
         availableHitUPos[pCaloHit] = PandoraContentApi::GetPlugins(*this)->GetLArTransformationPlugin()->YZtoU(pos3D.GetY(), pos3D.GetZ());
