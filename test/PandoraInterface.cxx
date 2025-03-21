@@ -453,7 +453,7 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
                 caloHitPars_UView.m_positionVector = pandora::CartesianVector(x0_cm, 0.f, upos_cm);
 
                 // BH BH BH!
-                std::cout << "pdg of calo hit " << caloHitPars_UView.m_mcMatchPDG << ": " << caloHitPars_UView.m_mcMatchWeight << std::endl;
+                std::cout << "pdg of calo hit " << caloHitPars_UView.m_mcMatchPDG.Get() << ": " << caloHitPars_UView.m_mcMatchWeight.Get() << std::endl;
 
                 PANDORA_THROW_RESULT_IF(
                     pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::CaloHit::Create(*pPrimaryPandora, caloHitPars_UView, m_larCaloHitFactory));
