@@ -246,6 +246,10 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 // Try to get the MC info related to this CaloHit and return info on the best matching true particle to this hit
                 sliceHitsMatchWt.emplace_back( pCaloHit->GetMCMatchWeight() );
                 sliceHitsMatchPDG.emplace_back( pCaloHit->GetMCMatchPDG() );
+
+                // !!!! TEMP
+                std::cout << "hierarchy ana hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+                ///////// !!
             }
         }
 

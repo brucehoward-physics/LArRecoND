@@ -12,6 +12,7 @@
 #include "Objects/Cluster.h"
 #include "Objects/ParticleFlowObject.h"
 #include "Pandora/Algorithm.h"
+#include "Objects/CaloHit.h"
 
 #include "larpandoracontent/LArHelpers/LArHierarchyHelper.h"
 
