@@ -429,11 +429,15 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
 
                 if (std::find(larspmc->m_mcp_id->begin(), larspmc->m_mcp_id->end(), trackID) == larspmc->m_mcp_id->end())
                     std::cout << "Problem? Could not find MC particle with file ID " << trackID << std::endl;
-                }
+            }
 
-            if (parameters.m_use3D)
+            if (parameters.m_use3D) {
+                // BH BH BH!
+                std::cout << "pdg of calo hit " << caloHitParameters.m_mcMatchPDG.Get() << ": " << caloHitParameters.m_mcMatchWeight.Get() << std::endl;
+
                 PANDORA_THROW_RESULT_IF(
                     pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::CaloHit::Create(*pPrimaryPandora, caloHitParameters, m_larCaloHitFactory));
+            }
 
             if (parameters.m_dataFormat == Parameters::LArNDFormat::SPMC)
                 PandoraApi::SetCaloHitToMCParticleRelationship(*pPrimaryPandora, (void *)((intptr_t)hitCounter), (void *)((intptr_t)trackID), energyFrac);
@@ -451,9 +455,6 @@ void ProcessSPEvents(const Parameters &parameters, const Pandora *const pPrimary
                 caloHitPars_UView.m_pParentAddress = (void *)(intptr_t(++hitCounter));
                 const float upos_cm(pPrimaryPandora->GetPlugins()->GetLArTransformationPlugin()->YZtoU(y0_cm, z0_cm));
                 caloHitPars_UView.m_positionVector = pandora::CartesianVector(x0_cm, 0.f, upos_cm);
-
-                // BH BH BH!
-                std::cout << "pdg of calo hit " << caloHitPars_UView.m_mcMatchPDG.Get() << ": " << caloHitPars_UView.m_mcMatchWeight.Get() << std::endl;
 
                 PANDORA_THROW_RESULT_IF(
                     pandora::STATUS_CODE_SUCCESS, !=, PandoraApi::CaloHit::Create(*pPrimaryPandora, caloHitPars_UView, m_larCaloHitFactory));
@@ -1751,6 +1752,8 @@ lar_content::LArCaloHitParameters MakeDefaultCaloHitParams(float voxelWidth)
     caloHitParameters.m_hitRegion = pandora::SINGLE_REGION;
     caloHitParameters.m_layer = 0;
     caloHitParameters.m_isInOuterSamplingLayer = false;
+    caloHitParameters.m_mcMatchWeight = 0.;
+    caloHitParameters.m_mcMatchPDG = 0;
     caloHitParameters.m_pParentAddress = (void *)(static_cast<uintptr_t>(0));
     caloHitParameters.m_larTPCVolumeId = 0;
     caloHitParameters.m_daughterVolumeId = 0;
