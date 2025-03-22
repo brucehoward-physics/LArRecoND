@@ -118,7 +118,8 @@ StatusCode HierarchyAnalysisAlgorithm::Run()
     LArHierarchyHelper::FillRecoHierarchy(*pPfoList, foldParameters, recoHierarchy);
 
     // BH! BH! BH! TEST:
-    for ( auto const& pCaloHit3D : pCaloHitList3D ) {
+    for ( CaloHitList::iterator itCaloHit3D=pCaloHitList3D.begin(); itCaloHit3D < pCaloHitList3D.end(); ++itCaloHit3D ){ 
+        pandora::CaloHit *pCaloHit3D = *itCaloHit3D;
         std::cout << "Test 3d hit info: " << pCaloHit3D->GetMCMatchPDG() << ": " << pCaloHit3D->GetMCMatchWeight() << std::endl;
     }
 
