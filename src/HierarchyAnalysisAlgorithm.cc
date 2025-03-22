@@ -93,6 +93,9 @@ StatusCode HierarchyAnalysisAlgorithm::Run()
     // checks for minimum number of hits in the U, V & W views only, which will fail for 3D
     const CaloHitList *pCaloHitList(nullptr);
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::GetList(*this, m_caloHitListName, pCaloHitList));
+    const CaloHitList *pCaloHitList3D(nullptr);
+    PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::GetList(*this, m_caloHitListName3D, pCaloHitList3D));
+
     const MCParticleList *pMCParticleList(nullptr);
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::GetCurrentList(*this, pMCParticleList));
     const PfoList *pPfoList(nullptr);
@@ -113,6 +116,11 @@ StatusCode HierarchyAnalysisAlgorithm::Run()
     LArHierarchyHelper::FillMCHierarchy(*pMCParticleList, *pCaloHitList, foldParameters, mcHierarchy);
     LArHierarchyHelper::RecoHierarchy recoHierarchy;
     LArHierarchyHelper::FillRecoHierarchy(*pPfoList, foldParameters, recoHierarchy);
+
+    // BH! BH! BH! TEST:
+    for ( auto const& pCaloHit3D : pCaloHitList3D ) {
+        std::cout << "Test 3d hit info: " << pCaloHit3D->GetMCMatchPDG() << ": " << pCaloHit3D->GetMCMatchWeight() << std::endl;
+    }
 
     const LArHierarchyHelper::QualityCuts quality(m_minPurity, m_minCompleteness, m_selectRecoHits);
     LArHierarchyHelper::MatchInfo matchInfo(mcHierarchy, recoHierarchy, quality);
@@ -753,6 +761,7 @@ StatusCode HierarchyAnalysisAlgorithm::ReadSettings(const TiXmlHandle xmlHandle)
     }
 
     PANDORA_RETURN_RESULT_IF_AND_IF(STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "CaloHitListName", m_caloHitListName));
+    PANDORA_RETURN_RESULT_IF_AND_IF(STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "CaloHitListName3D", m_caloHitListName3D));
     PANDORA_RETURN_RESULT_IF_AND_IF(STATUS_CODE_SUCCESS, STATUS_CODE_NOT_FOUND, !=, XmlHelper::ReadValue(xmlHandle, "PfoListName", m_pfoListName));
 
     PANDORA_RETURN_RESULT_IF_AND_IF(

@@ -63,6 +63,7 @@
 	<MCLocalIdLeafName>mcp_idLocal</MCLocalIdLeafName>
 	<EventsToSkip>0</EventsToSkip>
 	<CaloHitListName>CaloHitList2D</CaloHitListName>
+    <CaloHitListName3D>CaloHitList3D</CaloHitListName3D>
 	<PfoListName>RecreatedPfos</PfoListName>
         <AnalysisFileName>LArRecoND.root</AnalysisFileName>
         <AnalysisTreeName>LArRecoND</AnalysisTreeName>

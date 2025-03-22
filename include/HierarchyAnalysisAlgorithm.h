@@ -124,6 +124,7 @@ private:
     TFile *m_eventFile;                ///< The ROOT event file pointer
     TTree *m_eventTree;                ///< The ROOT event tree pointer
     std::string m_caloHitListName;     ///< Name of input calo hit list
+    std::string m_caloHitListName3D;   ///< BH TEST: Name of input calo hit list
     std::string m_pfoListName;         ///< Name of input PFO list
     std::string m_analysisFileName;    ///< The name of the analysis ROOT file to write
     std::string m_analysisTreeName;    ///< The name of the analysis ROOT tree to write
