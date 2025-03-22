@@ -124,18 +124,30 @@ void PreProcessingThreeDAlgorithm::ProcessCaloHits()
 
         if (TPC_VIEW_U == pCaloHit->GetHitType())
         {
+            // BH BH BH!
+            std::cout << "U VIEW HIT:: pdg of calo hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+            ////////////
             selectedCaloHitListU.push_back(pCaloHit);
         }
         else if (TPC_VIEW_V == pCaloHit->GetHitType())
         {
+            // BH BH BH!
+            std::cout << "V VIEW HIT:: pdg of calo hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+            ////////////
             selectedCaloHitListV.push_back(pCaloHit);
         }
         else if (TPC_VIEW_W == pCaloHit->GetHitType())
         {
+            // BH BH BH!
+            std::cout << "W VIEW HIT:: pdg of calo hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+            ////////////
             selectedCaloHitListW.push_back(pCaloHit);
         }
         else if (TPC_3D == pCaloHit->GetHitType())
         {
+            // BH BH BH!
+            std::cout << "3D HIT:: pdg of calo hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+            ////////////
             selectedCaloHitList3D.push_back(pCaloHit);
         }
     }
