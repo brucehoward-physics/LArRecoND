@@ -260,6 +260,15 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 std::cout << "hierarchy ana hit " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
                 ///////// !!
             }
+
+            // test another view
+            pandora::CaloHitList hitsU;
+            LArPfoHelper::GetCaloHits(pPfo, pandora::TPC_VIEW_U, hitsU);
+            for ( const pandora::CaloHit* const pCaloHit : hitsU ) {
+                // !!!! TEMP
+                std::cout << "hierarchy ana hit (U!) " << pCaloHit->GetMCMatchPDG() << ": " << pCaloHit->GetMCMatchWeight() << std::endl;
+                ///////// !!
+            }
         }
 
         // Get (first) root vertex
