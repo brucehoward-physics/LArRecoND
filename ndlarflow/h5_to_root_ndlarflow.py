@@ -173,6 +173,7 @@ def main(argv=None):
                 nu_px = (vtx['nu_4mom'][:,0]*MeV2GeV).astype('float32')
                 nu_py = (vtx['nu_4mom'][:,1]*MeV2GeV).astype('float32')
                 nu_pz = (vtx['nu_4mom'][:,2]*MeV2GeV).astype('float32')
+                nu_vtx_t = np.array( np.array(vtx['t_vert'])-np.array(vtx['t_event']), dtype='float32' )
                 # Little bit of gymnastics here
                 ccnc = vtx['isCC']
                 nu_iscc = np.invert(ccnc).astype('int32')
@@ -203,7 +204,7 @@ def main(argv=None):
                                 'mcp_endx':trajEndX, 'mcp_endy':trajEndY, 'mcp_endz':trajEndZ,\
                                 'nuID':nu_vtx_id, 'vertex_id':nu_vtx_id, 'nue':nu_vtx_E, 'nuPDG':nu_pdg,\
                                 'nupx':nu_px, 'nupy':nu_py, 'nupz':nu_pz, 'nuvtxx':nu_vtx_x, 'nuvtxy':nu_vtx_y,\
-                                'nuvtxz':nu_vtx_z, 'mode':nu_code, 'ccnc':nu_iscc,\
+                                'nuvtxz':nu_vtx_z, 'nuvtxT':nu_vtx_t, 'mode':nu_code, 'ccnc':nu_iscc,\
                                 'hit_packetFrac':packetFrac, 'hit_particleID':particleID, 'hit_particleIDLocal':particleIDLocal,\
                                 'hit_pdg':pdgHit, 'hit_vertexID':interactionIndex, 'hit_segmentID':trackID }
             else:

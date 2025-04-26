@@ -82,6 +82,7 @@ void rootToRootConversion(
     Float_t in_nuvtxx[MaxDepthArrayNu];
     Float_t in_nuvtxy[MaxDepthArrayNu];
     Float_t in_nuvtxz[MaxDepthArrayNu];
+    Float_t in_nuvtxT[MaxDepthArrayNu];
 
     TTree* tr = (TTree*)f->Get("subevents");
     tr->SetBranchAddress("run",&in_run);
@@ -139,6 +140,7 @@ void rootToRootConversion(
         tr->SetBranchAddress("nuvtxx", &in_nuvtxx);
         tr->SetBranchAddress("nuvtxy", &in_nuvtxy);
         tr->SetBranchAddress("nuvtxz", &in_nuvtxz);
+	tr->SetBranchAddress("nuvtxT", &in_nuvtxT);
         tr->SetBranchAddress("nnuID",&nnuinsubevent);
     }
 
@@ -186,6 +188,7 @@ void rootToRootConversion(
     std::vector<float> nuvtxx;
     std::vector<float> nuvtxy;
     std::vector<float> nuvtxz;
+    std::vector<float> nuvtxT;
     std::vector<float> nupx;
     std::vector<float> nupy;
     std::vector<float> nupz;
@@ -237,6 +240,7 @@ void rootToRootConversion(
         outgoingTree->Branch("nuvtxx", &nuvtxx);
         outgoingTree->Branch("nuvtxy", &nuvtxy);
         outgoingTree->Branch("nuvtxz", &nuvtxz);
+	outgoingTree->Branch("nuvtxT", &nuvtxT);
         outgoingTree->Branch("nupx", &nupx);
         outgoingTree->Branch("nupy", &nupy);
         outgoingTree->Branch("nupz", &nupz);
@@ -349,6 +353,7 @@ void rootToRootConversion(
             nuvtxx.clear();
             nuvtxy.clear();
             nuvtxz.clear();
+	    nuvtxT.clear();
             nupx.clear();
             nupy.clear();
             nupz.clear();
@@ -435,6 +440,7 @@ void rootToRootConversion(
                 nuvtxx.push_back(in_nuvtxx[idxNu]);
                 nuvtxy.push_back(in_nuvtxy[idxNu]);
                 nuvtxz.push_back(in_nuvtxz[idxNu]);
+		nuvtxT.push_back(in_nuvtxT[idxNu]);
                 nupx.push_back(in_nupx[idxNu]);
                 nupy.push_back(in_nupy[idxNu]);
                 nupz.push_back(in_nupz[idxNu]);
