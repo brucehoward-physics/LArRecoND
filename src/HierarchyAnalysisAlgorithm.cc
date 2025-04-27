@@ -459,7 +459,6 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 mcVtxXVect.emplace_back(mcVertex.GetX());
                 mcVtxYVect.emplace_back(mcVertex.GetY());
                 mcVtxZVect.emplace_back(mcVertex.GetZ());
-		mcVtxTVect.emplace_back(mcNuTime);
                 mcEndXVect.emplace_back(mcEndPoint.GetX());
                 mcEndYVect.emplace_back(mcEndPoint.GetY());
                 mcEndZVect.emplace_back(mcEndPoint.GetZ());
@@ -469,6 +468,7 @@ void HierarchyAnalysisAlgorithm::EventAnalysisOutput(const LArHierarchyHelper::M
                 mcNuVtxXVect.emplace_back(mcNuVertex.GetX());
                 mcNuVtxYVect.emplace_back(mcNuVertex.GetY());
                 mcNuVtxZVect.emplace_back(mcNuVertex.GetZ());
+		mcNuVtxTVect.emplace_back(mcNuTime);
                 mcNuEVect.emplace_back(mcNuEnergy);
                 mcNuPxVect.emplace_back(mcNuMomentum.GetX());
                 mcNuPyVect.emplace_back(mcNuMomentum.GetY());
