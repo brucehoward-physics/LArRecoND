@@ -512,6 +512,7 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
         const float nuVtxX = (*larspmc.m_nuvtxx)[i] * parameters.m_lengthScale;
         const float nuVtxY = (*larspmc.m_nuvtxy)[i] * parameters.m_lengthScale;
         const float nuVtxZ = (*larspmc.m_nuvtxz)[i] * parameters.m_lengthScale;
+	const float nuVtxT = (*larspmc.m_nuvtxT)[i]; // in microseconds
 
         const float nuE = (*larspmc.m_nue)[i] * parameters.m_energyScale;
         const float nuPx = (*larspmc.m_nupx)[i];
@@ -525,6 +526,7 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
         mcNeutrinoParameters.m_energy = nuE;
         mcNeutrinoParameters.m_momentum = pandora::CartesianVector(nuPx, nuPy, nuPz);
         mcNeutrinoParameters.m_vertex = pandora::CartesianVector(nuVtxX, nuVtxY, nuVtxZ);
+	mcNeutrinoParameters.m_pTime = nuVtxT;
         mcNeutrinoParameters.m_endpoint = pandora::CartesianVector(nuVtxX, nuVtxY, nuVtxZ);
 
         mcNeutrinoParameters.m_particleId = neutrinoPDG;
@@ -583,6 +585,7 @@ void CreateSPMCParticles(const LArSPMC &larspmc, const pandora::Pandora *const p
         const float starty = (*larspmc.m_mcp_starty)[i] * parameters.m_lengthScale;
         const float startz = (*larspmc.m_mcp_startz)[i] * parameters.m_lengthScale;
         mcParticleParameters.m_vertex = pandora::CartesianVector(startx, starty, startz);
+	mcParticleParameters.m_pTime = 0.f;
 
         const float endx = (*larspmc.m_mcp_endx)[i] * parameters.m_lengthScale;
         const float endy = (*larspmc.m_mcp_endy)[i] * parameters.m_lengthScale;
@@ -795,6 +798,7 @@ MCParticleEnergyMap CreateEDepSimMCParticles(const TG4Event &event, const pandor
                 mcNeutrinoParameters.m_energy = neutrinoP4.E();
                 mcNeutrinoParameters.m_momentum = pandora::CartesianVector(neutrinoP4.Px(), neutrinoP4.Py(), neutrinoP4.Pz());
                 mcNeutrinoParameters.m_vertex = pandora::CartesianVector(neutrinoVtx.X(), neutrinoVtx.Y(), neutrinoVtx.Z());
+		mcNeutrinoParameters.m_pTime = 0.f;
                 mcNeutrinoParameters.m_endpoint = pandora::CartesianVector(neutrinoVtx.X(), neutrinoVtx.Y(), neutrinoVtx.Z());
                 mcNeutrinoParameters.m_particleId = neutrinoPDG;
                 mcNeutrinoParameters.m_mcParticleType = pandora::MC_3D;
@@ -849,6 +853,7 @@ MCParticleEnergyMap CreateEDepSimMCParticles(const TG4Event &event, const pandor
             const TG4TrajectoryPoint start = trajPoints[0];
             const TLorentzVector vertex = start.GetPosition() * parameters.m_lengthScale;
             mcParticleParameters.m_vertex = pandora::CartesianVector(vertex.X(), vertex.Y(), vertex.Z());
+	    mcParticleParameters.m_pTime = 0.f;
 
             const TG4TrajectoryPoint end = trajPoints[nPoints - 1];
             const TLorentzVector endPos = end.GetPosition() * parameters.m_lengthScale;
@@ -1059,6 +1064,7 @@ void CreateSEDMCParticles(const LArSED &larsed, const pandora::Pandora *const pP
         mcNeutrinoParameters.m_energy = nuE;
         mcNeutrinoParameters.m_momentum = pandora::CartesianVector(nuPx, nuPy, nuPz);
         mcNeutrinoParameters.m_vertex = pandora::CartesianVector(nuVtxX, nuVtxY, nuVtxZ);
+	mcNeutrinoParameters.m_pTime = 0.f;
         mcNeutrinoParameters.m_endpoint = pandora::CartesianVector(nuVtxX, nuVtxY, nuVtxZ);
 
         mcNeutrinoParameters.m_particleId = neutrinoPDG;
@@ -1102,6 +1108,7 @@ void CreateSEDMCParticles(const LArSED &larsed, const pandora::Pandora *const pP
         const float starty = (*larsed.m_mcp_starty)[i] * parameters.m_lengthScale;
         const float startz = (*larsed.m_mcp_startz)[i] * parameters.m_lengthScale;
         mcParticleParameters.m_vertex = pandora::CartesianVector(startx, starty, startz);
+	mcParticleParameters.m_pTime = 0.f;
 
         const float endx = (*larsed.m_mcp_endx)[i] * parameters.m_lengthScale;
         const float endy = (*larsed.m_mcp_endy)[i] * parameters.m_lengthScale;
