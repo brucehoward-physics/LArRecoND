@@ -94,6 +94,7 @@ public:
     std::vector<float> *m_nuvtxx = nullptr;
     std::vector<float> *m_nuvtxy = nullptr;
     std::vector<float> *m_nuvtxz = nullptr;
+    std::vector<float> *m_nuvtxT = nullptr;
     std::vector<int> *m_mode = nullptr;
     std::vector<int> *m_ccnc = nullptr;
     TBranch *m_b_vertex_id = nullptr;
@@ -106,6 +107,7 @@ public:
     TBranch *m_b_nuvtxx = nullptr;
     TBranch *m_b_nuvtxy = nullptr;
     TBranch *m_b_nuvtxz = nullptr;
+    TBranch *m_b_nuvtxT = nullptr;
     TBranch *m_b_mode = nullptr;
     TBranch *m_b_ccnc = nullptr;
 };
@@ -168,6 +170,7 @@ void LArSPMC::InitMC(TTree *tree)
     m_fChain->SetBranchAddress("nuvtxx", &m_nuvtxx, &m_b_nuvtxx);
     m_fChain->SetBranchAddress("nuvtxy", &m_nuvtxy, &m_b_nuvtxy);
     m_fChain->SetBranchAddress("nuvtxz", &m_nuvtxz, &m_b_nuvtxz);
+    m_fChain->SetBranchAddress("nuvtxT", &m_nuvtxT, &m_b_nuvtxT);
     m_fChain->SetBranchAddress("mode", &m_mode, &m_b_mode);
     m_fChain->SetBranchAddress("ccnc", &m_ccnc, &m_b_ccnc);
 }
