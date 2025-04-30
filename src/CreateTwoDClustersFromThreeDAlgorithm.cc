@@ -23,6 +23,17 @@ CreateTwoDClustersFromThreeDAlgorithm::CreateTwoDClustersFromThreeDAlgorithm()
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
+inline std::pair<int, int> QuantizePosition(const float x, const float wirePos)
+{
+    // INFO: Quantize the position, to avoid floating point precision issues.
+    //       Scale value was chosen after testing, and values of 1e5 and above
+    //       were found to be sufficient.
+    constexpr float scale{1e5};
+    return std::make_pair(static_cast<int>(x * scale), static_cast<int>(wirePos * scale));
+}
+
+//------------------------------------------------------------------------------------------------------------------------------------------
+
 StatusCode CreateTwoDClustersFromThreeDAlgorithm::Run()
 {
     const ClusterList *pClusterList3D{nullptr};
@@ -48,6 +59,36 @@ StatusCode CreateTwoDClustersFromThreeDAlgorithm::Run()
     std::vector<PandoraContentApi::Cluster::Parameters> clustersV;
     std::vector<PandoraContentApi::Cluster::Parameters> clustersW;
 
+    // Populate a spatial map of CaloHit to 2D position.
+    SpatialHitMap spatialHitMapU, spatialHitMapV, spatialHitMapW;
+
+    for (const CaloHit *const pCaloHit : *pCaloHitListU)
+    {
+        if (!PandoraContentApi::IsAvailable(*this, pCaloHit))
+            continue;
+
+        const CartesianVector pos = pCaloHit->GetPositionVector();
+        spatialHitMapU[QuantizePosition(pos.GetX(), pos.GetZ())] = pCaloHit;
+    }
+
+    for (const CaloHit *const pCaloHit : *pCaloHitListV)
+    {
+        if (!PandoraContentApi::IsAvailable(*this, pCaloHit))
+            continue;
+
+        const CartesianVector pos = pCaloHit->GetPositionVector();
+        spatialHitMapV[QuantizePosition(pos.GetX(), pos.GetZ())] = pCaloHit;
+    }
+
+    for (const CaloHit *const pCaloHit : *pCaloHitListW)
+    {
+        if (!PandoraContentApi::IsAvailable(*this, pCaloHit))
+            continue;
+
+        const CartesianVector pos = pCaloHit->GetPositionVector();
+        spatialHitMapW[QuantizePosition(pos.GetX(), pos.GetZ())] = pCaloHit;
+    }
+
     for (const Cluster *pCluster : *pClusterList3D)
     {
         const OrderedCaloHitList &clusterHits3DOrdered = pCluster->GetOrderedCaloHitList();
@@ -59,30 +100,30 @@ StatusCode CreateTwoDClustersFromThreeDAlgorithm::Run()
 
         for (const CaloHit *pCaloHit3D : clusterHits3D)
         {
-            this->GetAssociatedTwoDHit(pCaloHit3D, pCaloHitListU, associatedHitsU, usedHitsU, TPC_VIEW_U);
-            this->GetAssociatedTwoDHit(pCaloHit3D, pCaloHitListV, associatedHitsV, usedHitsV, TPC_VIEW_V);
-            this->GetAssociatedTwoDHit(pCaloHit3D, pCaloHitListW, associatedHitsW, usedHitsW, TPC_VIEW_W);
+            this->GetAssociatedTwoDHit(pCaloHit3D, spatialHitMapU, associatedHitsU, usedHitsU, TPC_VIEW_U);
+            this->GetAssociatedTwoDHit(pCaloHit3D, spatialHitMapV, associatedHitsV, usedHitsV, TPC_VIEW_V);
+            this->GetAssociatedTwoDHit(pCaloHit3D, spatialHitMapW, associatedHitsW, usedHitsW, TPC_VIEW_W);
         }
 
         if (!associatedHitsU.empty())
         {
             PandoraContentApi::Cluster::Parameters parametersU;
-            parametersU.m_caloHitList = associatedHitsU;
-            clustersU.emplace_back(parametersU);
+            parametersU.m_caloHitList = std::move(associatedHitsU);
+            clustersU.emplace_back(std::move(parametersU));
         }
 
         if (!associatedHitsV.empty())
         {
             PandoraContentApi::Cluster::Parameters parametersV;
-            parametersV.m_caloHitList = associatedHitsV;
-            clustersV.emplace_back(parametersV);
+            parametersV.m_caloHitList = std::move(associatedHitsV);
+            clustersV.emplace_back(std::move(parametersV));
         }
 
         if (!associatedHitsW.empty())
         {
             PandoraContentApi::Cluster::Parameters parametersW;
-            parametersW.m_caloHitList = associatedHitsW;
-            clustersW.emplace_back(parametersW);
+            parametersW.m_caloHitList = std::move(associatedHitsW);
+            clustersW.emplace_back(std::move(parametersW));
         }
     }
 
@@ -92,7 +133,7 @@ StatusCode CreateTwoDClustersFromThreeDAlgorithm::Run()
     // U View
     const ClusterList *pClusterListU{nullptr};
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::CreateTemporaryListAndSetCurrent(*this, pClusterListU, tempClusterListName));
-    for (auto parameters : clustersU)
+    for (auto &parameters : clustersU)
     {
         const Cluster *pClusterU{nullptr};
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::Cluster::Create(*this, parameters, pClusterU));
@@ -102,7 +143,7 @@ StatusCode CreateTwoDClustersFromThreeDAlgorithm::Run()
     // V View
     const ClusterList *pClusterListV{nullptr};
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::CreateTemporaryListAndSetCurrent(*this, pClusterListV, tempClusterListName));
-    for (auto parameters : clustersV)
+    for (auto &parameters : clustersV)
     {
         const Cluster *pClusterV{nullptr};
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::Cluster::Create(*this, parameters, pClusterV));
@@ -112,7 +153,7 @@ StatusCode CreateTwoDClustersFromThreeDAlgorithm::Run()
     // W View
     const ClusterList *pClusterListW{nullptr};
     PANDORA_RETURN_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::CreateTemporaryListAndSetCurrent(*this, pClusterListW, tempClusterListName));
-    for (auto parameters : clustersW)
+    for (auto &parameters : clustersW)
     {
         const Cluster *pClusterW{nullptr};
         PANDORA_THROW_RESULT_IF(STATUS_CODE_SUCCESS, !=, PandoraContentApi::Cluster::Create(*this, parameters, pClusterW));
@@ -124,7 +165,7 @@ StatusCode CreateTwoDClustersFromThreeDAlgorithm::Run()
 
 //------------------------------------------------------------------------------------------------------------------------------------------
 
-void CreateTwoDClustersFromThreeDAlgorithm::GetAssociatedTwoDHit(const CaloHit *const pCaloHit3D, const CaloHitList *const pCaloHitList2D,
+void CreateTwoDClustersFromThreeDAlgorithm::GetAssociatedTwoDHit(const CaloHit *const pCaloHit3D, const SpatialHitMap &hitMap,
     CaloHitList &associatedHits, HitUsedMap &usedHits2D, const HitType &hitType) const
 {
     const CartesianVector posThreeD = pCaloHit3D->GetPositionVector();
@@ -132,29 +173,22 @@ void CreateTwoDClustersFromThreeDAlgorithm::GetAssociatedTwoDHit(const CaloHit *
 
     if (hitType == TPC_VIEW_U)
         wirePos = PandoraContentApi::GetPlugins(*this)->GetLArTransformationPlugin()->YZtoU(posThreeD.GetY(), posThreeD.GetZ());
-    if (hitType == TPC_VIEW_V)
+    else if (hitType == TPC_VIEW_V)
         wirePos = PandoraContentApi::GetPlugins(*this)->GetLArTransformationPlugin()->YZtoV(posThreeD.GetY(), posThreeD.GetZ());
-    if (hitType == TPC_VIEW_W)
+    else if (hitType == TPC_VIEW_W)
         wirePos = PandoraContentApi::GetPlugins(*this)->GetLArTransformationPlugin()->YZtoW(posThreeD.GetY(), posThreeD.GetZ());
 
-    for (const CaloHit *const pCaloHit2D : *pCaloHitList2D)
-    {
-        if (usedHits2D.at(pCaloHit2D) == true)
-            continue;
+    // Look up the match in the spatial map
+    const auto it = hitMap.find(QuantizePosition(posThreeD.GetX(), wirePos));
 
-        if (!PandoraContentApi::IsAvailable(*this, pCaloHit2D))
-            continue;
+    if (it == hitMap.end())
+        return;
 
-        const CartesianVector posTwoD = pCaloHit2D->GetPositionVector();
+    if (usedHits2D.at(it->second) == true)
+        return;
 
-        if (std::fabs(wirePos - posTwoD.GetZ()) < std::numeric_limits<float>::epsilon() &&
-            std::fabs(posThreeD.GetX() - posTwoD.GetX()) < std::numeric_limits<float>::epsilon())
-        {
-            associatedHits.emplace_back(pCaloHit2D);
-            usedHits2D.at(pCaloHit2D) = true;
-            break;
-        }
-    }
+    associatedHits.emplace_back(it->second);
+    usedHits2D.at(it->second) = true;
 }
 
 //------------------------------------------------------------------------------------------------------------------------------------------

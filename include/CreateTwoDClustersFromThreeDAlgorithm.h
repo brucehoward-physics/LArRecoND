@@ -32,18 +32,19 @@ private:
 
     typedef std::unordered_map<const pandora::CaloHit *, pandora::CaloHitList> HitAssociationMap;
     typedef std::unordered_map<const pandora::CaloHit *, bool> HitUsedMap;
+    typedef std::map<std::pair<int, int>, const pandora::CaloHit *> SpatialHitMap;
 
     /**
      *  @brief Get the hits in each view matching to the clustered 3D hits
      *
      *  @param pCaloHit3D a pointer to the 3D hit
-     *  @param pCaloHitList2D a pointer to the 2D hit list
+     *  @param hitMap a spatial map of 2D hits
      *  @param associatedHits reference to empty hit list to be filled with 2D hits
      *  @param usedHits2D list of already used 2D hits
      *  @param hitType the type of hits in the hit list
      */
-    void GetAssociatedTwoDHit(const pandora::CaloHit *const pCaloHit3D, const pandora::CaloHitList *const pCaloHitList2D,
-        pandora::CaloHitList &associatedHits, HitUsedMap &usedHits2D, const pandora::HitType &hitType) const;
+    void GetAssociatedTwoDHit(const pandora::CaloHit *const pCaloHit3D, const SpatialHitMap &hitMap, pandora::CaloHitList &associatedHits,
+        HitUsedMap &usedHits2D, const pandora::HitType &hitType) const;
 
     pandora::StatusCode ReadSettings(const pandora::TiXmlHandle xmlHandle);
 

@@ -10,10 +10,18 @@
 
 #include "Pandora/Algorithm.h"
 
+#include "larpandoracontent/LArUtility/KDTreeLinkerToolsT.h"
+
 #include <unordered_map>
+#include <vector>
 
 namespace lar_content
 {
+
+template <typename, unsigned int>
+class KDTreeLinkerAlgo;
+template <typename, unsigned int>
+class KDTreeNodeInfoT;
 
 /**
  *  @brief  SimpleClusterCreationThreeDAlgorithm class
@@ -31,6 +39,10 @@ private:
 
     typedef std::unordered_map<const pandora::CaloHit *, pandora::CaloHitList> HitAssociationMap;
     typedef std::unordered_map<const pandora::CaloHit *, bool> HitUsedMap;
+
+    typedef KDTreeLinkerAlgo<const pandora::CaloHit *, 2> HitKDTree2D;
+    typedef KDTreeNodeInfoT<const pandora::CaloHit *, 2> HitKDNode2D;
+    typedef std::vector<HitKDNode2D> HitKDNode2DList;
 
     /**
      *  @brief Create map of associations between calo hits

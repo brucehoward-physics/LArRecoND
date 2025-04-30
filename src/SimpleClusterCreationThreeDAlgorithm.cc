@@ -9,15 +9,19 @@
 #include "Pandora/AlgorithmHeaders.h"
 
 #include "larpandoracontent/LArHelpers/LArClusterHelper.h"
+#include "larpandoracontent/LArUtility/KDTreeLinkerAlgoT.h"
 
 #include "SimpleClusterCreationThreeDAlgorithm.h"
+
+#include <unordered_map>
 
 using namespace pandora;
 
 namespace lar_content
 {
 
-SimpleClusterCreationThreeDAlgorithm::SimpleClusterCreationThreeDAlgorithm() : m_clusteringWindowSquared(0.25f)
+SimpleClusterCreationThreeDAlgorithm::SimpleClusterCreationThreeDAlgorithm() :
+    m_clusteringWindowSquared(0.25f)
 {
 }
 
@@ -44,24 +48,55 @@ StatusCode SimpleClusterCreationThreeDAlgorithm::Run()
 
 void SimpleClusterCreationThreeDAlgorithm::BuildAssociationMap(const CaloHitList *const pCaloHitList, HitAssociationMap &hitAssociationMap) const
 {
-    for (const CaloHit *const pCaloHitI : *pCaloHitList)
+    if (pCaloHitList->empty())
+        return;
+
+    // Build KD-tree for spatial search
+    HitKDTree2D kdTree;
+    HitKDNode2DList hitKDNode2DList;
+    CaloHitList allCaloHits(pCaloHitList->begin(), pCaloHitList->end());
+
+    KDTreeBox hitsBoundingRegion2D(fill_and_bound_2d_kd_tree(allCaloHits, hitKDNode2DList));
+    kdTree.build(hitKDNode2DList, hitsBoundingRegion2D);
+
+    // Create a lookup from KDNode to actual CaloHit
+    std::unordered_map<const void *, const CaloHit *> nodeToHitMap;
+    for (const auto &node : hitKDNode2DList)
+        nodeToHitMap[node.data] = static_cast<const CaloHit *>(node.data);
+
+    // Use KD-tree to find nearby hits for each hit
+    for (const CaloHit *const pCaloHitI : allCaloHits)
     {
-        const CartesianVector positionI = pCaloHitI->GetPositionVector();
-        for (const CaloHit *const pCaloHitJ : *pCaloHitList)
+        // Calculate search region based on clustering window
+        const float searchDistance(std::sqrt(m_clusteringWindowSquared));
+        KDTreeBox searchRegionHits = build_2d_kd_search_region(pCaloHitI, searchDistance, searchDistance);
+
+        // Find hits in the search region
+        HitKDNode2DList found;
+        kdTree.search(searchRegionHits, found);
+
+        // Process found hits
+        CaloHitList &caloHitListI = hitAssociationMap[pCaloHitI];
+
+        for (const auto &node : found)
         {
+            const CaloHit *const pCaloHitJ = nodeToHitMap[node.data];
+
+            // Skip self-comparison
             if (pCaloHitI == pCaloHitJ)
                 continue;
 
-            const float distSquared((positionI - pCaloHitJ->GetPositionVector()).GetMagnitudeSquared());
+            // Calculate actual 3D distance to confirm it's within threshold
+            const float distSquared((pCaloHitI->GetPositionVector() - pCaloHitJ->GetPositionVector()).GetMagnitudeSquared());
+
             if (distSquared < m_clusteringWindowSquared)
             {
-                CaloHitList &caloHitListI(hitAssociationMap[pCaloHitI]);
-
+                // Add to hit association map symmetrically
+                // (only if not already added)
                 if (caloHitListI.end() == std::find(caloHitListI.begin(), caloHitListI.end(), pCaloHitJ))
                     caloHitListI.push_back(pCaloHitJ);
 
-                CaloHitList &caloHitListJ(hitAssociationMap[pCaloHitI]);
-
+                CaloHitList &caloHitListJ = hitAssociationMap[pCaloHitJ];
                 if (caloHitListJ.end() == std::find(caloHitListJ.begin(), caloHitListJ.end(), pCaloHitI))
                     caloHitListJ.push_back(pCaloHitI);
             }

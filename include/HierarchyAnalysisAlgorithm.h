@@ -124,6 +124,7 @@ private:
     TTree *m_eventTree;                ///< The ROOT event tree pointer
     std::string m_caloHitListName;     ///< Name of input calo hit list
     std::string m_pfoListName;         ///< Name of input PFO list
+    float m_minTrackScore;             ///< Minimum track score to call a PFO a track
     std::string m_analysisFileName;    ///< The name of the analysis ROOT file to write
     std::string m_analysisTreeName;    ///< The name of the analysis ROOT tree to write
     bool m_foldToPrimaries;            ///< Whether or not to fold the hierarchy back to primary particles

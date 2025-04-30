@@ -1,26 +1,32 @@
 /**
  *  @file   src/PfoThreeDHitAssignmentAlgorithm.cc
  *
- *  @brief  
+ *  @brief
  *
  *  $Log: $
  */
 
 #include "Api/PandoraApi.h"
+#include "Objects/CartesianVector.h"
+#include "Objects/ParticleFlowObject.h"
 #include "Pandora/AlgorithmHeaders.h"
 
+#include "Pandora/PandoraInternal.h"
 #include "larpandoracontent/LArHelpers/LArClusterHelper.h"
 #include "larpandoracontent/LArHelpers/LArGeometryHelper.h"
 #include "larpandoracontent/LArHelpers/LArPfoHelper.h"
 
 #include "PfoThreeDHitAssignmentAlgorithm.h"
 
+#include <limits>
+
 using namespace pandora;
 
 namespace lar_content
 {
 
-PfoThreeDHitAssignmentAlgorithm::PfoThreeDHitAssignmentAlgorithm() : m_inputCaloHitList3DName{""}
+PfoThreeDHitAssignmentAlgorithm::PfoThreeDHitAssignmentAlgorithm() :
+    m_inputCaloHitList3DName{""}
 {
 }
 
@@ -51,6 +57,10 @@ pandora::StatusCode PfoThreeDHitAssignmentAlgorithm::Run()
     // Maps to keep track of which 3D hit matches to a 2D hit in a given pfo
     std::map<const ParticleFlowObject *, std::string> pfoToClusterListName;
     std::map<const CaloHit *, const ParticleFlowObject *> availableHitToPfoU, availableHitToPfoV, availableHitToPfoW;
+
+    using HitPositionMap = std::map<std::pair<float, float>, const CaloHit *>;
+    std::map<const ParticleFlowObject *, HitPositionMap> pfoToUHitMap, pfoToVHitMap, pfoToWHitMap;
+
     for (unsigned int i = 0; i < m_inputPfoListNames.size(); ++i)
     {
         const std::string pfoListName(m_inputPfoListNames.at(i));
@@ -72,41 +82,67 @@ pandora::StatusCode PfoThreeDHitAssignmentAlgorithm::Run()
             LArPfoHelper::GetCaloHits(pPfo, TPC_VIEW_V, theseCaloHitsV);
             LArPfoHelper::GetCaloHits(pPfo, TPC_VIEW_W, theseCaloHitsW);
 
-            for (const CaloHit *const pHit3D : availableHits)
+            for (const CaloHit *const pHit : theseCaloHitsU)
             {
-                const CartesianVector pos3D = pHit3D->GetPositionVector();
-                for (const CaloHit *const pHit2D : theseCaloHitsU)
-                {
-                    const CartesianVector pos2D = pHit2D->GetPositionVector();
-                    if (std::fabs(pos3D.GetX() - pos2D.GetX()) > std::numeric_limits<float>::epsilon())
-                        continue;
-                    if (std::fabs(availableHitUPos.at(pHit3D) - pos2D.GetZ()) > std::numeric_limits<float>::epsilon())
-                        continue;
-                    availableHitToPfoU[pHit3D] = pPfo;
-                    break;
-                }
+                const CartesianVector pos = pHit->GetPositionVector();
+                pfoToUHitMap[pPfo][std::make_pair(pos.GetX(), pos.GetZ())] = pHit;
+            }
 
-                for (const CaloHit *const pHit2D : theseCaloHitsV)
-                {
-                    const CartesianVector pos2D = pHit2D->GetPositionVector();
-                    if (std::fabs(pos3D.GetX() - pos2D.GetX()) > std::numeric_limits<float>::epsilon())
-                        continue;
-                    if (std::fabs(availableHitVPos.at(pHit3D) - pos2D.GetZ()) > std::numeric_limits<float>::epsilon())
-                        continue;
-                    availableHitToPfoV[pHit3D] = pPfo;
-                    break;
-                }
+            for (const CaloHit *const pHit : theseCaloHitsV)
+            {
+                const CartesianVector pos = pHit->GetPositionVector();
+                pfoToVHitMap[pPfo][std::make_pair(pos.GetX(), pos.GetZ())] = pHit;
+            }
 
-                for (const CaloHit *const pHit2D : theseCaloHitsW)
-                {
-                    const CartesianVector pos2D = pHit2D->GetPositionVector();
-                    if (std::fabs(pos3D.GetX() - pos2D.GetX()) > std::numeric_limits<float>::epsilon())
-                        continue;
-                    if (std::fabs(availableHitWPos.at(pHit3D) - pos2D.GetZ()) > std::numeric_limits<float>::epsilon())
-                        continue;
-                    availableHitToPfoW[pHit3D] = pPfo;
-                    break;
-                }
+            for (const CaloHit *const pHit : theseCaloHitsW)
+            {
+                const CartesianVector pos = pHit->GetPositionVector();
+                pfoToWHitMap[pPfo][std::make_pair(pos.GetX(), pos.GetZ())] = pHit;
+            }
+        }
+    }
+
+    for (const CaloHit *const pHit3D : availableHits)
+    {
+        const auto pos3D = pHit3D->GetPositionVector();
+        const auto xPos = pos3D.GetX();
+        const auto uPos = availableHitUPos.at(pHit3D);
+        const auto vPos = availableHitVPos.at(pHit3D);
+        const auto wPos = availableHitWPos.at(pHit3D);
+
+        for (const auto &pfoMapPair : pfoToUHitMap)
+        {
+            const ParticleFlowObject *const pPfo = pfoMapPair.first;
+            const HitPositionMap &uHitMap = pfoMapPair.second;
+
+            if (uHitMap.count(std::make_pair(xPos, uPos)) != 0)
+            {
+                availableHitToPfoU[pHit3D] = pPfo;
+                break;
+            }
+        }
+
+        for (const auto &pfoMapPair : pfoToVHitMap)
+        {
+            const ParticleFlowObject *const pPfo = pfoMapPair.first;
+            const HitPositionMap &vHitMap = pfoMapPair.second;
+
+            if (vHitMap.count(std::make_pair(xPos, vPos)) != 0)
+            {
+                availableHitToPfoV[pHit3D] = pPfo;
+                break;
+            }
+        }
+
+        for (const auto &pfoMapPair : pfoToWHitMap)
+        {
+            const ParticleFlowObject *const pPfo = pfoMapPair.first;
+            const HitPositionMap &wHitMap = pfoMapPair.second;
+
+            if (wHitMap.count(std::make_pair(xPos, wPos)) != 0)
+            {
+                availableHitToPfoW[pHit3D] = pPfo;
+                break;
             }
         }
     }
@@ -114,32 +150,25 @@ pandora::StatusCode PfoThreeDHitAssignmentAlgorithm::Run()
     CaloHitList threeDHitsMatchedToOnePfo;
     CaloHitList threeDHitsMatchedToMultiPfos;
 
-    std::map<const CaloHit *, PfoVector> hits3DToPfos;
+    std::map<const CaloHit *, PfoSet> hits3DToPfosSets;
     for (const CaloHit *const pCaloHit3D : availableHits)
     {
-        PfoVector matchedPfos;
+        PfoSet matchedPfos;
 
-        // For U we can always add the pfo as it is first
-        if (availableHitToPfoU.count(pCaloHit3D))
-        {
-            if (std::find(matchedPfos.begin(), matchedPfos.end(), availableHitToPfoU.at(pCaloHit3D)) == matchedPfos.end())
-                matchedPfos.emplace_back(availableHitToPfoU.at(pCaloHit3D));
-        }
+        auto uIter = availableHitToPfoU.find(pCaloHit3D);
+        if (uIter != availableHitToPfoU.end())
+            matchedPfos.insert(uIter->second);
 
-        if (availableHitToPfoV.count(pCaloHit3D))
-        {
-            if (std::find(matchedPfos.begin(), matchedPfos.end(), availableHitToPfoV.at(pCaloHit3D)) == matchedPfos.end())
-                matchedPfos.emplace_back(availableHitToPfoV.at(pCaloHit3D));
-        }
+        auto vIter = availableHitToPfoV.find(pCaloHit3D);
+        if (vIter != availableHitToPfoV.end())
+            matchedPfos.insert(vIter->second);
 
-        if (availableHitToPfoW.count(pCaloHit3D))
-        {
-            if (std::find(matchedPfos.begin(), matchedPfos.end(), availableHitToPfoW.at(pCaloHit3D)) == matchedPfos.end())
-                matchedPfos.emplace_back(availableHitToPfoW.at(pCaloHit3D));
-        }
+        auto wIter = availableHitToPfoW.find(pCaloHit3D);
+        if (wIter != availableHitToPfoW.end())
+            matchedPfos.insert(wIter->second);
 
-        if (!hits3DToPfos.count(pCaloHit3D))
-            hits3DToPfos[pCaloHit3D] = matchedPfos;
+        if (!hits3DToPfosSets.count(pCaloHit3D))
+            hits3DToPfosSets[pCaloHit3D] = matchedPfos;
 
         const unsigned int nPfos(matchedPfos.size());
         if (0 == nPfos)
@@ -149,6 +178,11 @@ pandora::StatusCode PfoThreeDHitAssignmentAlgorithm::Run()
         else
             threeDHitsMatchedToMultiPfos.emplace_back(pCaloHit3D);
     }
+
+    // Swap sets to vectors for easier access
+    std::map<const CaloHit *, PfoVector> hits3DToPfos;
+    for (const auto &hitToPfos : hits3DToPfosSets)
+        hits3DToPfos[hitToPfos.first] = PfoVector(hitToPfos.second.begin(), hitToPfos.second.end());
 
     std::map<const ParticleFlowObject *, CaloHitList> pfoToHits;
 
