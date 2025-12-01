@@ -2,12 +2,12 @@
     <!-- PANDORA OUTERFACE SETTINGS -->
     <Verbosity>0</Verbosity>
     <!-- Command switches -->
-    <ShouldRunTrackFit>true</ShouldRunTrackFit>
-    <ShouldRunShowerFit>false</ShouldRunShowerFit>
-    <TrackScoreCut>-1</TrackScoreCut>
+    <ShouldRunTrackFit>false</ShouldRunTrackFit>
+    <ShouldRunShowerFit>true</ShouldRunShowerFit>
+    <TrackScoreCut>-1.0</TrackScoreCut>
     <!-- Track fitter settings -->
     <!-- 2x2 -->
-    <Detector>1</Detector>
+    <Detector>2</Detector>
     <PixelPitch>0.44</PixelPitch>
     <!-- More complicated options on refining algs -->
     <ShouldApplyThreshold>false</ShouldApplyThreshold>
@@ -19,14 +19,14 @@
     <!-- Using default density, efield, birksA, birksK, eLifetime, eSpeed -->
     <!-- Leaving the Calibration Fudge Factor as is for now, pinned to 2 MeV/cm -->
     <ShouldCorrectLifetime>true</ShouldCorrectLifetime>
-    <ShouldCorrectRecombination>true</ShouldCorrectRecombination>
-    <FlowStyleRecombination>false</FlowStyleRecombination>
-    <BoxRecombination>false</BoxRecombination>
-    <BirksRecombination>true</BirksRecombination>    
+    <ShouldCorrectRecombination>false</ShouldCorrectRecombination>
+    <FlowStyleRecombination>true</FlowStyleRecombination>
+    <BoxRecombination>true</BoxRecombination>
+    <BirksRecombination>false</BirksRecombination>    
     <!-- PID -->
     <!-- Using nominal dEdx Res Template file in larsoft_data repo on CVMFS -->
-    <ShouldRunPID>true</ShouldRunPID>
-    <PIDAlgChi2PID>true</PIDAlgChi2PID>
+    <ShouldRunPID>false</ShouldRunPID>
+    <PIDAlgChi2PID>false</PIDAlgChi2PID>
     <!-- And try a run with the dx restriction on -->
     <Chi2RestrictDX>true</Chi2RestrictDX>
 </pandora>

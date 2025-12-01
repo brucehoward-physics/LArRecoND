@@ -176,8 +176,8 @@ bool PrintOptions();
 class NDRecoOutputData
 {
  public:
-  NDRecoOutputData(const std::string filename, const bool writeTracks, const bool writePID); ///< default constructor
-
+NDRecoOutputData(const std::string filename, const bool writeTracks, const bool writeShowers, const bool writePID);/// < added to include showers
+  
   void ClearData(); ///< will reset the vectors
 
   void WriteToFile(); ///< write to the tree
@@ -193,9 +193,23 @@ class NDRecoOutputData
 			  const std::vector<float> &pFromRangeMu, const std::vector<float> &pFromRangeP ); ///< Fill the track fit result branches
   void FillTrackCaloBranches( const std::vector<float> &tfCaloE, const std::vector<float> &tfVisE, const std::vector<int> &tfSliceId, const std::vector<int> &tfPfoId,
 			      const std::vector<float> &tfX, const std::vector<float> &tfY, const std::vector<float> &tfZ, const std::vector<float> &tfQ,
-			      const std::vector<float> &tfRR, const std::vector<float> &tfdx, const std::vector<float> &tfdQdx, const std::vector<float> &tfdEdx );
+                              const std::vector<float> &tfRR, const std::vector<float> &tfdx, const std::vector<float> &tfdQdx, const std::vector<float> &tfiEdx );
   void FillTrackPID( const std::vector<int> &pidPDG, const std::vector<int> &pidNDF, const std::vector<float> &pidMu, const std::vector<float> &pidPi,
-		     const std::vector<float> &pidK, const std::vector<float> &pidPro );
+                     const std::vector<float> &pidK, const std::vector<float> &pidPro );
+  void FillShowerBranches( const std::vector<float> &shwrcentX, const std::vector<float> &shwrcentY,  const std::vector<float> &shwrcentZ, 
+                           const std::vector<float> &shwrstartX,  const std::vector<float> &shwrstartY, const std::vector<float> &shwrstartZ,
+                           const std::vector<float> &shrdirX, const std::vector<float> &shwrdirY, const std::vector<float> &shwrdirZ,
+			   const std::vector<float> &shwrlength, const std::vector<int> &shwrSlice, const std::vector<int> &shwrCluster,
+			   const std::vector<float> &startTrackSlidingFitDirX,  const std::vector<float> &startTrackSlidingFitDirY,  const std::vector<float> &startTrackSlidingFitDirZ,  
+			   const std::vector<float> &shwrstartpointsX, const std::vector<float> &shwrstartpointsY, const std::vector<float> &shwrstartpointsZ, 
+			   const std::vector<double> &shwrdEdx, const std::vector<float> &shwrTotalE, const std::vector<int> &shwrStartPointsRecoId,
+			   const std::vector<float> &minProjection,
+			   const std::vector<float> &medianQ,
+			   const std::vector<float> &chargePerHit,
+			   const std::vector<float> &chargePerHitStartPoints,
+			   const std::vector<float> &pitchValue,
+			   const std::vector<float> &shwrPCAX, const std::vector<float> &shwrPCAY, const std::vector<float> &shwrPCAZ,
+			   const std::vector<float> &shwrStartHitPositionX, const std::vector<float> &shwrStartHitPositionY, const std::vector<float> &shwrStartHitPositionZ ); ///< Fill the shower fit result branches
 
  private:
   TFile* m_fileOut;
@@ -302,6 +316,7 @@ class NDRecoOutputData
   std::vector<float> m_out_trkfitRR;
   std::vector<float> m_out_trkfitdx;
   std::vector<float> m_out_trkfitdQdx;
+
   std::vector<float> m_out_trkfitdEdx;
   std::vector<int> m_out_pid_pdg;
   std::vector<int> m_out_pid_ndf;
@@ -309,9 +324,44 @@ class NDRecoOutputData
   std::vector<float> m_out_pid_pi;
   std::vector<float> m_out_pid_k;
   std::vector<float> m_out_pid_pro;
+
+  // added shower products
+  std::vector<float> m_out_shwrfitLength;
+  std::vector<float> m_out_shwrfitCentroidX;
+  std::vector<float> m_out_shwrfitCentroidY;
+  std::vector<float> m_out_shwrfitCentroidZ;
+  std::vector<float> m_out_shwrfitStartX;
+  std::vector<float> m_out_shwrfitStartY;
+  std::vector<float> m_out_shwrfitStartZ;
+  std::vector<float> m_out_shwrfitDirX;
+  std::vector<float> m_out_shwrfitDirY;
+  std::vector<float> m_out_shwrfitDirZ;
+  std::vector<int> m_out_shwrSliceId;
+  std::vector<int> m_out_shwrClusterId;
+  std::vector<float> m_out_startTrkSlidingFitDirX;
+  std::vector<float> m_out_startTrkSlidingFitDirY;
+  std::vector<float> m_out_startTrkSlidingFitDirZ;
+  std::vector<float> m_out_shwrStartPointsX;
+  std::vector<float> m_out_shwrStartPointsY;
+  std::vector<float> m_out_shwrStartPointsZ;
+  std::vector<double> m_out_shwrdEdx;
+  std::vector<float> m_out_shwrTotalE;
+  std::vector<int> m_out_shwrStartPointsRecoId;
+  std::vector<float> m_out_minProjection;
+  std::vector<float> m_out_medianQ;
+  std::vector<float> m_out_chargePerHit;
+  std::vector<float> m_out_chargePerHitStartPoints;
+  std::vector<float> m_out_pitchValue;
+  std::vector<float> m_out_shwrPCAX;
+  std::vector<float> m_out_shwrPCAY;
+  std::vector<float> m_out_shwrPCAZ;
+  std::vector<float> m_out_shwrStartHitPositionX;
+  std::vector<float> m_out_shwrStartHitPositionY;
+  std::vector<float> m_out_shwrStartHitPositionZ;
 };
 
- NDRecoOutputData::NDRecoOutputData(const std::string filename, const bool writeTracks, const bool writePID)
+ NDRecoOutputData::NDRecoOutputData(const std::string filename, const bool writeTracks, const bool writeShowers, const bool writePID)
+
  {
 
    m_fileOut = new TFile(filename.c_str(), "RECREATE");
@@ -430,8 +480,45 @@ class NDRecoOutputData
      m_treeOut->Branch("trkfitRR", &m_out_trkfitRR);
      m_treeOut->Branch("trkfitdx", &m_out_trkfitdx);
      m_treeOut->Branch("trkfitdQdx", &m_out_trkfitdQdx);
+
      m_treeOut->Branch("trkfitdEdx", &m_out_trkfitdEdx);
    }
+     if( writeShowers){
+     m_treeOut->Branch("shwrfitLength", &m_out_shwrfitLength);
+     m_treeOut->Branch("shwrfitCentroidX", &m_out_shwrfitCentroidX);
+     m_treeOut->Branch("shwrfitCentroidY", &m_out_shwrfitCentroidY);
+     m_treeOut->Branch("shwrfitCentroidZ", &m_out_shwrfitCentroidZ);
+     m_treeOut->Branch("shwrfitStartX", &m_out_shwrfitStartX);
+     m_treeOut->Branch("shwrfitStartY", &m_out_shwrfitStartY);
+     m_treeOut->Branch("shwrfitStartZ", &m_out_shwrfitStartZ);
+     m_treeOut->Branch("shwrfitDirX", &m_out_shwrfitDirX);
+     m_treeOut->Branch("shwrfitDirY", &m_out_shwrfitDirY);
+     m_treeOut->Branch("shwrfitDirZ", &m_out_shwrfitDirZ);
+     m_treeOut->Branch("shwrSliceId", &m_out_shwrSliceId);
+     m_treeOut->Branch("shwrClusterId", &m_out_shwrClusterId);
+     m_treeOut->Branch("startTrkSlidingFitDirX", &m_out_startTrkSlidingFitDirX);
+     m_treeOut->Branch("startTrkSlidingFitDirY", &m_out_startTrkSlidingFitDirY);
+     m_treeOut->Branch("startTrkSlidingFitDirZ", &m_out_startTrkSlidingFitDirZ);
+     m_treeOut->Branch("shwrStartPointsX", &m_out_shwrStartPointsX);
+     m_treeOut->Branch("shwrStartPointsY", &m_out_shwrStartPointsY);
+     m_treeOut->Branch("shwrStartPointsZ", &m_out_shwrStartPointsZ);
+     m_treeOut->Branch("shwrdEdx", &m_out_shwrdEdx);
+     m_treeOut->Branch("shwrTotalE", &m_out_shwrTotalE);
+     m_treeOut->Branch("shwrStartPointsRecoId", &m_out_shwrStartPointsRecoId);
+     m_treeOut->Branch("minProjection", &m_out_minProjection);
+     m_treeOut->Branch("medianQ", &m_out_medianQ);
+     m_treeOut->Branch("chargePerHit", &m_out_chargePerHit);
+     m_treeOut->Branch("chargePerHitStartPoints", &m_out_chargePerHitStartPoints);
+     m_treeOut->Branch("pitchValue", &m_out_pitchValue);
+     m_treeOut->Branch("shwrPCAX", &m_out_shwrPCAX);
+     m_treeOut->Branch("shwrPCAY", &m_out_shwrPCAY);
+     m_treeOut->Branch("shwrPCAZ", &m_out_shwrPCAZ);
+     m_treeOut->Branch("shwrStartHitPositionX", &m_out_shwrStartHitPositionX);
+     m_treeOut->Branch("shwrStartHitPositionY", &m_out_shwrStartHitPositionY);
+     m_treeOut->Branch("shwrStartHitPositionZ", &m_out_shwrStartHitPositionZ);
+
+   }
+  
  }
 
  void NDRecoOutputData::ClearData()
@@ -543,6 +630,40 @@ class NDRecoOutputData
    m_out_pid_pi.clear();
    m_out_pid_k.clear();
    m_out_pid_pro.clear();
+//shower
+   m_out_shwrfitLength.clear(); 
+   m_out_shwrfitCentroidX.clear();	
+   m_out_shwrfitCentroidY.clear();
+   m_out_shwrfitCentroidZ.clear();
+   m_out_shwrfitStartX.clear();
+   m_out_shwrfitStartY.clear();
+   m_out_shwrfitStartZ.clear();
+   m_out_shwrfitDirX.clear();
+   m_out_shwrfitDirY.clear();
+   m_out_shwrfitDirZ.clear();
+   m_out_shwrSliceId.clear();
+   m_out_shwrClusterId.clear();
+   m_out_startTrkSlidingFitDirX.clear();
+   m_out_startTrkSlidingFitDirY.clear();
+   m_out_startTrkSlidingFitDirZ.clear();
+   m_out_shwrStartPointsX.clear();
+   m_out_shwrStartPointsY.clear();
+   m_out_shwrStartPointsZ.clear();
+   m_out_shwrdEdx.clear();
+   m_out_shwrTotalE.clear();
+   m_out_shwrStartPointsRecoId.clear();
+   m_out_minProjection.clear();
+   m_out_medianQ.clear();
+   m_out_chargePerHit.clear();
+   m_out_chargePerHitStartPoints.clear();
+   m_out_pitchValue.clear();
+   m_out_shwrPCAX.clear();
+   m_out_shwrPCAY.clear();
+   m_out_shwrPCAZ.clear();
+   m_out_shwrStartHitPositionX.clear();
+   m_out_shwrStartHitPositionY.clear();
+   m_out_shwrStartHitPositionZ.clear();
+   
  }
 
  void NDRecoOutputData::WriteToFile()
@@ -689,6 +810,54 @@ void NDRecoOutputData::FillTrackPID(const std::vector<int> &pidPDG, const std::v
   m_out_pid_pi.insert( m_out_pid_pi.end(), pidPi.begin(), pidPi.end() );
   m_out_pid_k.insert( m_out_pid_k.end(), pidK.begin(), pidK.end() );
   m_out_pid_pro.insert( m_out_pid_pro.end(), pidPro.begin(), pidPro.end() );
+}
+
+void NDRecoOutputData::FillShowerBranches( const std::vector<float> &shwrcentX, const std::vector<float> &shwrcentY, const std::vector<float> &shwrcentZ, const std::vector<float> &shwrstartX,
+					   const std::vector<float> &shwrstartY, const std::vector<float> &shwrstartZ, const std::vector<float> &shwrdirX, const std::vector<float> &shwrdirY,
+					   const std::vector<float> &shwrdirZ, const std::vector<float> &shwrlength, const std::vector<int> &shwrSlice, const std::vector<int> &shwrCluster,
+					   const std::vector<float> &startTrackSlidingFitDirX, const std::vector<float> &startTrackSlidingFitDirY, const std::vector<float> &startTrackSlidingFitDirZ,
+					   const std::vector<float> &shwrstartpointsX,const std::vector<float> &shwrstartpointsY,const std::vector<float> &shwrstartpointsZ,
+					   const std::vector<double> &shwrdEdx, const std::vector<float> &shwrTotalE, const std::vector<int> &shwrStartPointsRecoId,
+					   const std::vector<float> &minProjection,
+					   const std::vector<float> &medianQ,
+					   const std::vector<float> &chargePerHit,
+					   const std::vector<float> &chargePerHitStartPoints,
+					   const std::vector<float> &pitchValue,
+					   const std::vector<float> &shwrPCAX, const std::vector<float> &shwrPCAY, const std::vector<float> &shwrPCAZ,
+					   const std::vector<float> &shwrStartHitPositionX, const std::vector<float> &shwrStartHitPositionY, const std::vector<float> &shwrStartHitPositionZ)
+{
+  m_out_shwrfitCentroidX.insert(m_out_shwrfitCentroidX.end(), shwrcentX.begin(), shwrcentX.end() );
+  m_out_shwrfitCentroidY.insert(m_out_shwrfitCentroidY.end(), shwrcentY.begin(), shwrcentY.end() );
+  m_out_shwrfitCentroidZ.insert(m_out_shwrfitCentroidZ.end(), shwrcentZ.begin(), shwrcentZ.end() );
+  m_out_shwrfitStartX.insert(m_out_shwrfitStartX.end(), shwrstartX.begin(), shwrstartX.end() );
+  m_out_shwrfitStartY.insert(m_out_shwrfitStartY.end(), shwrstartY.begin(), shwrstartY.end() );
+  m_out_shwrfitStartZ.insert(m_out_shwrfitStartZ.end(), shwrstartZ.begin(), shwrstartZ.end() );
+  m_out_shwrfitDirX.insert(m_out_shwrfitDirX.end(), shwrdirX.begin(), shwrdirX.end() );
+  m_out_shwrfitDirY.insert(m_out_shwrfitDirY.end(), shwrdirY.begin(), shwrdirY.end() );
+  m_out_shwrfitDirZ.insert(m_out_shwrfitDirZ.end(), shwrdirZ.begin(), shwrdirZ.end() );
+  m_out_shwrfitLength.insert(m_out_shwrfitLength.end(), shwrlength.begin(), shwrlength.end() );
+  m_out_shwrSliceId.insert(m_out_shwrSliceId.end(), shwrSlice.begin(), shwrSlice.end());
+  m_out_shwrClusterId.insert(m_out_shwrClusterId.end(), shwrCluster.begin(), shwrCluster.end());
+  m_out_startTrkSlidingFitDirX.insert(m_out_startTrkSlidingFitDirX.end(), startTrackSlidingFitDirX.begin(), startTrackSlidingFitDirX.end());
+  m_out_startTrkSlidingFitDirY.insert(m_out_startTrkSlidingFitDirY.end(), startTrackSlidingFitDirY.begin(), startTrackSlidingFitDirY.end());
+  m_out_startTrkSlidingFitDirZ.insert(m_out_startTrkSlidingFitDirZ.end(), startTrackSlidingFitDirZ.begin(), startTrackSlidingFitDirZ.end());
+  m_out_shwrStartPointsX.insert(m_out_shwrStartPointsX.end(), shwrstartpointsX.begin(), shwrstartpointsX.end());
+  m_out_shwrStartPointsY.insert(m_out_shwrStartPointsY.end(), shwrstartpointsY.begin(), shwrstartpointsY.end());
+  m_out_shwrStartPointsZ.insert(m_out_shwrStartPointsZ.end(), shwrstartpointsZ.begin(), shwrstartpointsZ.end());
+  m_out_shwrdEdx.insert(m_out_shwrdEdx.end(), shwrdEdx.begin(), shwrdEdx.end());
+  m_out_shwrTotalE.insert(m_out_shwrTotalE.end(), shwrTotalE.begin(), shwrTotalE.end());
+  m_out_shwrStartPointsRecoId.insert(m_out_shwrStartPointsRecoId.end(), shwrStartPointsRecoId.begin(), shwrStartPointsRecoId.end());
+  m_out_minProjection.insert(m_out_minProjection.end(), minProjection.begin(), minProjection.end());
+  m_out_medianQ.insert(m_out_medianQ.end(), medianQ.begin(), medianQ.end());
+  m_out_chargePerHit.insert(m_out_chargePerHit.end(), chargePerHit.begin(), chargePerHit.end());
+  m_out_chargePerHitStartPoints.insert(m_out_chargePerHitStartPoints.end(), chargePerHitStartPoints.begin(), chargePerHitStartPoints.end());
+  m_out_pitchValue.insert(m_out_pitchValue.end(), pitchValue.begin(), pitchValue.end());
+  m_out_shwrPCAX.insert(m_out_shwrPCAX.end(), shwrPCAX.begin(), shwrPCAX.end());
+  m_out_shwrPCAY.insert(m_out_shwrPCAY.end(), shwrPCAY.begin(), shwrPCAY.end());
+  m_out_shwrPCAZ.insert(m_out_shwrPCAZ.end(), shwrPCAZ.begin(), shwrPCAZ.end());
+  m_out_shwrStartHitPositionX.insert(m_out_shwrStartHitPositionX.end(), shwrStartHitPositionX.begin(), shwrStartHitPositionX.end());
+  m_out_shwrStartHitPositionY.insert(m_out_shwrStartHitPositionY.end(), shwrStartHitPositionY.begin(), shwrStartHitPositionY.end());
+  m_out_shwrStartHitPositionZ.insert(m_out_shwrStartHitPositionZ.end(), shwrStartHitPositionZ.begin(), shwrStartHitPositionZ.end());
 }
 
 } // namespace lar_nd_postreco
