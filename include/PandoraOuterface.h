@@ -189,7 +189,8 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
 			  const std::vector<float> &dirX,  const std::vector<float> &dirY,  const std::vector<float> &dirZ,
 			  const std::vector<float> &endX, const std::vector<float> &endY, const std::vector<float> &endZ,
                           const std::vector<float> &enddirX,  const std::vector<float> &enddirY,  const std::vector<float> &enddirZ,
-			  const std::vector<float> &length, const std::vector<bool> &trkCont, const std::vector<float> &keFromRangeMu, const std::vector<float> &keFromRangeP,
+			  const std::vector<float> &length, const std::vector<bool> &trkCont, const std::vector<float> &trkWallDist,
+			  const std::vector<float> &keFromRangeMu, const std::vector<float> &keFromRangeP,
 			  const std::vector<float> &pFromRangeMu, const std::vector<float> &pFromRangeP ); ///< Fill the track fit result branches
   void FillTrackCaloBranches( const std::vector<float> &tfCaloE, const std::vector<float> &tfVisE, const std::vector<int> &tfSliceId, const std::vector<int> &tfPfoId,
 			      const std::vector<float> &tfX, const std::vector<float> &tfY, const std::vector<float> &tfZ, const std::vector<float> &tfQ,
@@ -301,6 +302,7 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
   std::vector<float> m_out_trkfitEndDirZ;
   std::vector<float> m_out_trkfitLength;
   std::vector<bool> m_out_trkfitContained;
+  std::vector<float> m_out_trkfitWallDist;
   std::vector<float> m_out_KEFromLengthMuon;
   std::vector<float> m_out_KEFromLengthProton;
   std::vector<float> m_out_pFromLengthMuon;
@@ -456,6 +458,7 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
      m_treeOut->Branch("trkfitEndDirZ", &m_out_trkfitEndDirZ);
      m_treeOut->Branch("trkfitLength", &m_out_trkfitLength);
      m_treeOut->Branch("trkfitContained", &m_out_trkfitContained);
+     m_treeOut->Branch("trkfitWallDist", &m_out_trkfitWallDist);
      m_treeOut->Branch("trkfitKEFromLengthMuon", &m_out_KEFromLengthMuon);
      m_treeOut->Branch("trkfitKEFromLengthProton", &m_out_KEFromLengthProton);
      m_treeOut->Branch("trkfitPFromLengthMuon", &m_out_pFromLengthMuon);
@@ -608,6 +611,7 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
    m_out_trkfitEndDirZ.clear();
    m_out_trkfitLength.clear();
    m_out_trkfitContained.clear();
+   m_out_trkfitWallDist.clear();
    m_out_KEFromLengthMuon.clear();
    m_out_KEFromLengthProton.clear();
    m_out_pFromLengthMuon.clear();
@@ -758,7 +762,8 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
 					   const std::vector<float> &dirX,  const std::vector<float> &dirY,  const std::vector<float> &dirZ,
 					   const std::vector<float> &endX, const std::vector<float> &endY, const std::vector<float> &endZ,
 					   const std::vector<float> &enddirX,  const std::vector<float> &enddirY,  const std::vector<float> &enddirZ,
-					   const std::vector<float> &length, const std::vector<bool> &trkCont, const std::vector<float> &keFromRangeMu, const std::vector<float> &keFromRangeP,
+					   const std::vector<float> &length, const std::vector<bool> &trkCont, const std::vector<float> &trkWallDist,
+					   const std::vector<float> &keFromRangeMu, const std::vector<float> &keFromRangeP,
 					   const std::vector<float> &pFromRangeMu, const std::vector<float> &pFromRangeP )
  {
    m_out_trkfitStartX.insert( m_out_trkfitStartX.end(), startX.begin(), startX.end() );
@@ -775,6 +780,7 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
    m_out_trkfitEndDirZ.insert( m_out_trkfitEndDirZ.end(), enddirZ.begin(), enddirZ.end() );
    m_out_trkfitLength.insert( m_out_trkfitLength.end(), length.begin(), length.end() );
    m_out_trkfitContained.insert( m_out_trkfitContained.end(), trkCont.begin(), trkCont.end() );
+   m_out_trkfitWallDist.insert( m_out_trkfitWallDist.end(), trkWallDist.begin(), trkWallDist.end() );
    m_out_KEFromLengthMuon.insert( m_out_KEFromLengthMuon.end(), keFromRangeMu.begin(), keFromRangeMu.end() );
    m_out_KEFromLengthProton.insert( m_out_KEFromLengthProton.end(), keFromRangeP.begin(), keFromRangeP.end() );
    m_out_pFromLengthMuon.insert( m_out_pFromLengthMuon.end(), pFromRangeMu.begin(), pFromRangeMu.end() );

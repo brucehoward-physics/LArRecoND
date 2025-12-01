@@ -308,6 +308,7 @@ void ProcessPostReco(const ParameterStruct &parameters)
     std::vector<float> trkStartX, trkStartY, trkStartZ, trkEndX, trkEndY, trkEndZ;
     std::vector<float> trkStartDirX, trkStartDirY, trkStartDirZ, trkEndDirX, trkEndDirY, trkEndDirZ;
     std::vector<float> trkLen, trk_KEFromLength_muon, trk_KEFromLength_proton, trk_pFromLength_muon, trk_pFromLength_proton;
+    std::vector<float> trkWallDistance;
     std::vector<bool> trkContained;
 
     // Track fit calo vectors of importance
@@ -623,6 +624,7 @@ void ProcessPostReco(const ParameterStruct &parameters)
           trkEndDirZ.push_back(0.);
 	  trkLen.push_back(0.);
 	  trkContained.push_back(false);
+	  trkWallDistance.push_back(0.);
 	  trackFitTrackCaloE.push_back(0.);
 	  trackFitVisE.push_back(0.);
 	  trk_KEFromLength_muon.push_back(0.);
@@ -667,6 +669,23 @@ void ProcessPostReco(const ParameterStruct &parameters)
           else if ( trackStateEnd.GetPosition().GetZ() < zBoundaries[0]+5. ) thisTrackContained = false;
           else if ( trackStateEnd.GetPosition().GetZ() > zBoundaries[1]-5. ) thisTrackContained = false;
 	  trkContained.push_back(thisTrackContained);
+	  // distance to closest wall
+	  float minDistFromWall = std::numeric_limits<float>::max();
+	  // -- check start
+	  if ( trackStateStart.GetPosition().GetX() - xBoundaries[0] < minDistFromWall ) minDistFromWall = trackStateStart.GetPosition().GetX() - xBoundaries[0];
+	  if ( xBoundaries[1] - trackStateStart.GetPosition().GetX() < minDistFromWall ) minDistFromWall = xBoundaries[1] - trackStateStart.GetPosition().GetX();
+	  if ( trackStateStart.GetPosition().GetY() - yBoundaries[0] < minDistFromWall ) minDistFromWall = trackStateStart.GetPosition().GetY() - yBoundaries[0];
+          if ( yBoundaries[1] - trackStateStart.GetPosition().GetY() < minDistFromWall ) minDistFromWall = yBoundaries[1] - trackStateStart.GetPosition().GetY();
+	  if ( trackStateStart.GetPosition().GetZ() - zBoundaries[0] < minDistFromWall ) minDistFromWall = trackStateStart.GetPosition().GetZ() - zBoundaries[0];
+          if ( zBoundaries[1] - trackStateStart.GetPosition().GetZ() < minDistFromWall ) minDistFromWall = zBoundaries[1] - trackStateStart.GetPosition().GetZ();
+	  // -- check end
+	  if ( trackStateEnd.GetPosition().GetX() - xBoundaries[0] < minDistFromWall ) minDistFromWall = trackStateEnd.GetPosition().GetX() - xBoundaries[0];
+          if ( xBoundaries[1] - trackStateEnd.GetPosition().GetX() < minDistFromWall ) minDistFromWall = xBoundaries[1] - trackStateEnd.GetPosition().GetX();
+          if ( trackStateEnd.GetPosition().GetY() - yBoundaries[0] < minDistFromWall ) minDistFromWall = trackStateEnd.GetPosition().GetY() - yBoundaries[0];
+          if ( yBoundaries[1] - trackStateEnd.GetPosition().GetY() < minDistFromWall ) minDistFromWall = yBoundaries[1] - trackStateEnd.GetPosition().GetY();
+          if ( trackStateEnd.GetPosition().GetZ() - zBoundaries[0] < minDistFromWall ) minDistFromWall = trackStateEnd.GetPosition().GetZ() - zBoundaries[0];
+          if ( zBoundaries[1] - trackStateEnd.GetPosition().GetZ() < minDistFromWall ) minDistFromWall = zBoundaries[1] - trackStateEnd.GetPosition().GetZ();
+	  trkWallDistance.push_back(minDistFromWall);
 
 	  float trklength = 0.;
 	  // Get the length going point to point
@@ -1191,7 +1210,7 @@ else{
 }
 
     if ( parameters.runTrackFit ) {
-      fOut.FillTrackBranches(trkStartX,trkStartY,trkStartZ,trkStartDirX,trkStartDirY,trkStartDirZ,trkEndX,trkEndY,trkEndZ,trkEndDirX,trkEndDirY,trkEndDirZ,trkLen,trkContained,
+      fOut.FillTrackBranches(trkStartX,trkStartY,trkStartZ,trkStartDirX,trkStartDirY,trkStartDirZ,trkEndX,trkEndY,trkEndZ,trkEndDirX,trkEndDirY,trkEndDirZ,trkLen,trkContained,trkWallDistance,
 			     trk_KEFromLength_muon,trk_KEFromLength_proton,trk_pFromLength_muon,trk_pFromLength_proton);
       fOut.FillTrackCaloBranches(trackFitTrackCaloE,trackFitVisE,trackFitSliceId,trackFitPfoId,trackFitX,trackFitY,trackFitZ,trackFitQ,trackFitRR,trackFitdx,trackFitdQdx,trackFitdEdx);
       if ( parameters.fShouldRunPID ) fOut.FillTrackPID(pid_pdg,pid_ndf,pid_muScore,pid_piScore,pid_kScore,pid_proScore);
