@@ -296,6 +296,8 @@ void ProcessPostReco(const ParameterStruct &parameters)
   // Create the class where we'll store the output info
   NDRecoOutputData fOut( parameters.outfileName );
 
+  fOut.FillMetadata( parameters );
+
   // Loop events
   for ( long entryIdx = 0; entryIdx < nEntries; ++entryIdx ) {
     pandoraIn->GetEntry(entryIdx);

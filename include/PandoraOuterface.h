@@ -185,6 +185,7 @@ class NDRecoOutputData
 
   void CloseFile(); ///< close the TFile
 
+  void FillMetadata( const ParameterStruct &parameters ); ///< Fill the metadata, e.g. the parameters set by XML
   void FillBasicBranches( const std::unique_ptr<LArRecoNDFormat> &inputSpill ); ///< Fill the basic branches
   void FillTrackBranches( const std::vector<float> &startX, const std::vector<float> &startY, const std::vector<float> &startZ,
 			  const std::vector<float> &dirX,  const std::vector<float> &dirY,  const std::vector<float> &dirZ,
@@ -215,8 +216,44 @@ class NDRecoOutputData
 
  private:
   TFile* m_fileOut;
+  TTree* m_treeMeta;
   TTree* m_treeOut;
 
+  // treeMeta branches
+  bool  parRunTrackFit;
+  bool  parRunShowerFit;
+  float parTrackScoreCut;
+  float parPixelPitch;
+  bool  parApplyThreshold;
+  float parThresholdVal;
+  bool  parVoxelizeZ;
+  float parVoxelZHW;
+  bool  parUseVoxelizedStartStop;
+  bool  parShouldCorrectLifetime;
+  float parElectronLifetime;
+  float parElectronDriftSpeed;
+  bool  parShouldCorrectRecomb;
+  bool  parFlowStyleRecombination;
+  bool  parBoxRecombination;
+  float parBoxBeta;
+  float parBoxAlpha;
+  bool  parBirksRecombination;
+  float parBirksA;
+  float parBirksK;
+  float parDensity;
+  float parEField;
+  bool  parApplyCalibrationFudgeFactor;
+  bool  parApplyCalibrationFudgeFactorPID;
+  float parCalibrationFudgeFactor;
+  bool  parShouldRunPID;
+  bool  parPIDAlgChi2PID;
+  bool  parChi2RestrictDX;
+  float parChi2RestrictDXLo;
+  float parChi2RestrictDXHi;
+  float parChi2RestrictDEDXLo;
+  int   parDetector;
+
+  // treeOut branches
   Int_t m_out_event;
   Int_t m_out_subrun;
   Int_t m_out_run;
@@ -367,9 +404,44 @@ class NDRecoOutputData
  {
 
    m_fileOut = new TFile(filename.c_str(), "RECREATE");
+   m_treeMeta = new TTree("Metadata","Metadata");
    m_treeOut = new TTree("LArRecoND","LArRecoND");
 
-   // Set the branches
+   // Metadata tree: Set the branches
+   m_treeMeta->Branch("runTrackFit", &parRunTrackFit);
+   m_treeMeta->Branch("runShowerFit", &parRunShowerFit);
+   m_treeMeta->Branch("trackScoreCut", &parTrackScoreCut);
+   m_treeMeta->Branch("pixelPitch", &parPixelPitch);
+   m_treeMeta->Branch("applyThreshold", &parApplyThreshold);
+   m_treeMeta->Branch("thresholdVal", &parThresholdVal);
+   m_treeMeta->Branch("voxelizeZ", &parVoxelizeZ);
+   m_treeMeta->Branch("voxelZHW", &parVoxelZHW);
+   m_treeMeta->Branch("useVoxelizedStartStop", &parUseVoxelizedStartStop);
+   m_treeMeta->Branch("fShouldCorrectLifetime", &parShouldCorrectLifetime);
+   m_treeMeta->Branch("fElectronLifetime", &parElectronLifetime);
+   m_treeMeta->Branch("fElectronDriftSpeed", &parElectronDriftSpeed);
+   m_treeMeta->Branch("fShouldCorrectRecombination", &parShouldCorrectRecomb);
+   m_treeMeta->Branch("fFlowStyleRecombination", &parFlowStyleRecombination);
+   m_treeMeta->Branch("fBoxRecombination", &parBoxRecombination);
+   m_treeMeta->Branch("fBoxBeta", &parBoxBeta);
+   m_treeMeta->Branch("fBoxAlpha", &parBoxAlpha);
+   m_treeMeta->Branch("fBirksRecombination", &parBirksRecombination);
+   m_treeMeta->Branch("fBirksA", &parBirksA);
+   m_treeMeta->Branch("fBirksK", &parBirksK);
+   m_treeMeta->Branch("fDensity", &parDensity);
+   m_treeMeta->Branch("fEField", &parEField);
+   m_treeMeta->Branch("fApplyCalibrationFudgeFactor", &parApplyCalibrationFudgeFactor);
+   m_treeMeta->Branch("fApplyCalibrationFudgeFactorPID", &parApplyCalibrationFudgeFactorPID);
+   m_treeMeta->Branch("fCalibrationFudgeFactor", &parCalibrationFudgeFactor);
+   m_treeMeta->Branch("fShouldRunPID", &parShouldRunPID);
+   m_treeMeta->Branch("fPIDAlgChi2PID", &parPIDAlgChi2PID);
+   m_treeMeta->Branch("fChi2RestrictDX", &parChi2RestrictDX);
+   m_treeMeta->Branch("fChi2RestrictDXLo", &parChi2RestrictDXLo);
+   m_treeMeta->Branch("fChi2RestrictDXHi", &parChi2RestrictDXHi);
+   m_treeMeta->Branch("fChi2RestrictDEDXLo", &parChi2RestrictDEDXLo);
+   m_treeMeta->Branch("fDetector", &parDetector);
+
+   // Output tree: Set the branches
    m_treeOut->Branch("event", &m_out_event);
    m_treeOut->Branch("subRun", &m_out_subrun);
    m_treeOut->Branch("run", &m_out_run);
@@ -673,9 +745,48 @@ class NDRecoOutputData
 
  void NDRecoOutputData::CloseFile()
  {
+   m_treeMeta->Write();
    m_treeOut->Write();
    m_fileOut->Close();
    std::cout << "NDRecoOutputData File has been closed." << std::endl;
+ }
+
+ void NDRecoOutputData::FillMetadata( const ParameterStruct &parameters )
+ {
+   parRunTrackFit = parameters.runTrackFit;
+   parRunShowerFit = parameters.runShowerFit;
+   parTrackScoreCut = parameters.trackScoreCut;
+   parPixelPitch = parameters.pixelPitch;
+   parApplyThreshold = parameters.applyThreshold;
+   parThresholdVal = parameters.thresholdVal;
+   parVoxelizeZ = parameters.voxelizeZ;
+   parVoxelZHW = parameters.voxelZHW;
+   parUseVoxelizedStartStop = parameters.useVoxelizedStartStop;
+   parShouldCorrectLifetime = parameters.fShouldCorrectLifetime;
+   parElectronLifetime = parameters.fElectronLifetime;
+   parElectronDriftSpeed = parameters.fElectronDriftSpeed;
+   parShouldCorrectRecomb = parameters.fShouldCorrectRecomb;
+   parFlowStyleRecombination = parameters.fFlowStyleRecombination;
+   parBoxRecombination = parameters.fBoxRecombination;
+   parBoxBeta = parameters.fBoxBeta;
+   parBoxAlpha = parameters.fBoxAlpha;
+   parBirksRecombination = parameters.fBirksRecombination;
+   parBirksA = parameters.fBirksA;
+   parBirksK = parameters.fBirksK;
+   parDensity = parameters.fDensity;
+   parEField = parameters.fEField;
+   parApplyCalibrationFudgeFactor = parameters.fApplyCalibrationFudgeFactor;
+   parApplyCalibrationFudgeFactorPID = parameters.fApplyCalibrationFudgeFactor_PID;
+   parCalibrationFudgeFactor = parameters.fCalibrationFudgeFactor;
+   parShouldRunPID = parameters.fShouldRunPID;
+   parPIDAlgChi2PID = parameters.fPIDAlgChi2PID;
+   parChi2RestrictDX = parameters.fChi2RestrictDX;
+   parChi2RestrictDXLo = parameters.fChi2RestrictDXLo;
+   parChi2RestrictDXHi = parameters.fChi2RestrictDXHi;
+   parChi2RestrictDEDXLo = parameters.fChi2RestrictDEDXLo;
+   parDetector = parameters.fDetector;
+
+   m_treeMeta->Fill();
  }
 
  void NDRecoOutputData::FillBasicBranches( const std::unique_ptr<LArRecoNDFormat> &inputSpill )
