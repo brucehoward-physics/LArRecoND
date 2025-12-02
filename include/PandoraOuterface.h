@@ -176,8 +176,9 @@ bool PrintOptions();
 class NDRecoOutputData
 {
  public:
-NDRecoOutputData(const std::string filename, const bool writeTracks, const bool writeShowers, const bool writePID);/// < added to include showers
-  
+
+  NDRecoOutputData(const std::string filename); ///< default constructor
+
   void ClearData(); ///< will reset the vectors
 
   void WriteToFile(); ///< write to the tree
@@ -362,8 +363,7 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
   std::vector<float> m_out_shwrStartHitPositionZ;
 };
 
- NDRecoOutputData::NDRecoOutputData(const std::string filename, const bool writeTracks, const bool writeShowers, const bool writePID)
-
+ NDRecoOutputData::NDRecoOutputData(const std::string filename)
  {
 
    m_fileOut = new TFile(filename.c_str(), "RECREATE");
@@ -443,85 +443,80 @@ NDRecoOutputData(const std::string filename, const bool writeTracks, const bool 
    m_treeOut->Branch("mcNuPz", &m_out_mcNuPz);
 
    // And the new ones
-   if ( writeTracks ) {
-     m_treeOut->Branch("trkfitStartX", &m_out_trkfitStartX);
-     m_treeOut->Branch("trkfitStartY", &m_out_trkfitStartY);
-     m_treeOut->Branch("trkfitStartZ", &m_out_trkfitStartZ);
-     m_treeOut->Branch("trkfitStartDirX", &m_out_trkfitStartDirX);
-     m_treeOut->Branch("trkfitStartDirY", &m_out_trkfitStartDirY);
-     m_treeOut->Branch("trkfitStartDirZ", &m_out_trkfitStartDirZ);
-     m_treeOut->Branch("trkfitEndX", &m_out_trkfitEndX);
-     m_treeOut->Branch("trkfitEndY", &m_out_trkfitEndY);
-     m_treeOut->Branch("trkfitEndZ", &m_out_trkfitEndZ);
-     m_treeOut->Branch("trkfitEndDirX", &m_out_trkfitEndDirX);
-     m_treeOut->Branch("trkfitEndDirY", &m_out_trkfitEndDirY);
-     m_treeOut->Branch("trkfitEndDirZ", &m_out_trkfitEndDirZ);
-     m_treeOut->Branch("trkfitLength", &m_out_trkfitLength);
-     m_treeOut->Branch("trkfitContained", &m_out_trkfitContained);
-     m_treeOut->Branch("trkfitWallDist", &m_out_trkfitWallDist);
-     m_treeOut->Branch("trkfitKEFromLengthMuon", &m_out_KEFromLengthMuon);
-     m_treeOut->Branch("trkfitKEFromLengthProton", &m_out_KEFromLengthProton);
-     m_treeOut->Branch("trkfitPFromLengthMuon", &m_out_pFromLengthMuon);
-     m_treeOut->Branch("trkfitPFromLengthProton", &m_out_pFromLengthProton);
-     // if PID
-     if ( writePID ) {
-       m_treeOut->Branch("trkfitPID_PDG", &m_out_pid_pdg);
-       m_treeOut->Branch("trkfitPID_NDF", &m_out_pid_ndf);
-       m_treeOut->Branch("trkfitPID_Mu", &m_out_pid_mu);
-       m_treeOut->Branch("trkfitPID_Pi", &m_out_pid_pi);
-       m_treeOut->Branch("trkfitPID_K", &m_out_pid_k);
-       m_treeOut->Branch("trkfitPID_Pro", &m_out_pid_pro);
-     }
-     m_treeOut->Branch("trkfitTrackCaloE", &m_out_trkfitTrackCaloE);
-     m_treeOut->Branch("trkfitVisE", &m_out_trkfitVisE);
-     m_treeOut->Branch("trkfitSliceId", &m_out_trkfitSliceId);
-     m_treeOut->Branch("trkfitPfoId", &m_out_trkfitPfoId);
-     m_treeOut->Branch("trkfitX", &m_out_trkfitX);
-     m_treeOut->Branch("trkfitY", &m_out_trkfitY);
-     m_treeOut->Branch("trkfitZ", &m_out_trkfitZ);
-     m_treeOut->Branch("trkfitQ", &m_out_trkfitQ);
-     m_treeOut->Branch("trkfitRR", &m_out_trkfitRR);
-     m_treeOut->Branch("trkfitdx", &m_out_trkfitdx);
-     m_treeOut->Branch("trkfitdQdx", &m_out_trkfitdQdx);
+   // Tracks
+   m_treeOut->Branch("trkfitStartX", &m_out_trkfitStartX);
+   m_treeOut->Branch("trkfitStartY", &m_out_trkfitStartY);
+   m_treeOut->Branch("trkfitStartZ", &m_out_trkfitStartZ);
+   m_treeOut->Branch("trkfitStartDirX", &m_out_trkfitStartDirX);
+   m_treeOut->Branch("trkfitStartDirY", &m_out_trkfitStartDirY);
+   m_treeOut->Branch("trkfitStartDirZ", &m_out_trkfitStartDirZ);
+   m_treeOut->Branch("trkfitEndX", &m_out_trkfitEndX);
+   m_treeOut->Branch("trkfitEndY", &m_out_trkfitEndY);
+   m_treeOut->Branch("trkfitEndZ", &m_out_trkfitEndZ);
+   m_treeOut->Branch("trkfitEndDirX", &m_out_trkfitEndDirX);
+   m_treeOut->Branch("trkfitEndDirY", &m_out_trkfitEndDirY);
+   m_treeOut->Branch("trkfitEndDirZ", &m_out_trkfitEndDirZ);
+   m_treeOut->Branch("trkfitLength", &m_out_trkfitLength);
+   m_treeOut->Branch("trkfitContained", &m_out_trkfitContained);
+   m_treeOut->Branch("trkfitWallDist", &m_out_trkfitWallDist);
+   m_treeOut->Branch("trkfitKEFromLengthMuon", &m_out_KEFromLengthMuon);
+   m_treeOut->Branch("trkfitKEFromLengthProton", &m_out_KEFromLengthProton);
+   m_treeOut->Branch("trkfitPFromLengthMuon", &m_out_pFromLengthMuon);
+   m_treeOut->Branch("trkfitPFromLengthProton", &m_out_pFromLengthProton);
+   // Track PID
+   m_treeOut->Branch("trkfitPID_PDG", &m_out_pid_pdg);
+   m_treeOut->Branch("trkfitPID_NDF", &m_out_pid_ndf);
+   m_treeOut->Branch("trkfitPID_Mu", &m_out_pid_mu);
+   m_treeOut->Branch("trkfitPID_Pi", &m_out_pid_pi);
+   m_treeOut->Branch("trkfitPID_K", &m_out_pid_k);
+   m_treeOut->Branch("trkfitPID_Pro", &m_out_pid_pro);
+   // Track Calo
+   m_treeOut->Branch("trkfitTrackCaloE", &m_out_trkfitTrackCaloE);
+   m_treeOut->Branch("trkfitVisE", &m_out_trkfitVisE);
+   m_treeOut->Branch("trkfitSliceId", &m_out_trkfitSliceId);
+   m_treeOut->Branch("trkfitPfoId", &m_out_trkfitPfoId);
+   m_treeOut->Branch("trkfitX", &m_out_trkfitX);
+   m_treeOut->Branch("trkfitY", &m_out_trkfitY);
+   m_treeOut->Branch("trkfitZ", &m_out_trkfitZ);
+   m_treeOut->Branch("trkfitQ", &m_out_trkfitQ);
+   m_treeOut->Branch("trkfitRR", &m_out_trkfitRR);
+   m_treeOut->Branch("trkfitdx", &m_out_trkfitdx);
+   m_treeOut->Branch("trkfitdQdx", &m_out_trkfitdQdx);
+   m_treeOut->Branch("trkfitdEdx", &m_out_trkfitdEdx);
 
-     m_treeOut->Branch("trkfitdEdx", &m_out_trkfitdEdx);
-   }
-     if( writeShowers){
-     m_treeOut->Branch("shwrfitLength", &m_out_shwrfitLength);
-     m_treeOut->Branch("shwrfitCentroidX", &m_out_shwrfitCentroidX);
-     m_treeOut->Branch("shwrfitCentroidY", &m_out_shwrfitCentroidY);
-     m_treeOut->Branch("shwrfitCentroidZ", &m_out_shwrfitCentroidZ);
-     m_treeOut->Branch("shwrfitStartX", &m_out_shwrfitStartX);
-     m_treeOut->Branch("shwrfitStartY", &m_out_shwrfitStartY);
-     m_treeOut->Branch("shwrfitStartZ", &m_out_shwrfitStartZ);
-     m_treeOut->Branch("shwrfitDirX", &m_out_shwrfitDirX);
-     m_treeOut->Branch("shwrfitDirY", &m_out_shwrfitDirY);
-     m_treeOut->Branch("shwrfitDirZ", &m_out_shwrfitDirZ);
-     m_treeOut->Branch("shwrSliceId", &m_out_shwrSliceId);
-     m_treeOut->Branch("shwrClusterId", &m_out_shwrClusterId);
-     m_treeOut->Branch("startTrkSlidingFitDirX", &m_out_startTrkSlidingFitDirX);
-     m_treeOut->Branch("startTrkSlidingFitDirY", &m_out_startTrkSlidingFitDirY);
-     m_treeOut->Branch("startTrkSlidingFitDirZ", &m_out_startTrkSlidingFitDirZ);
-     m_treeOut->Branch("shwrStartPointsX", &m_out_shwrStartPointsX);
-     m_treeOut->Branch("shwrStartPointsY", &m_out_shwrStartPointsY);
-     m_treeOut->Branch("shwrStartPointsZ", &m_out_shwrStartPointsZ);
-     m_treeOut->Branch("shwrdEdx", &m_out_shwrdEdx);
-     m_treeOut->Branch("shwrTotalE", &m_out_shwrTotalE);
-     m_treeOut->Branch("shwrStartPointsRecoId", &m_out_shwrStartPointsRecoId);
-     m_treeOut->Branch("minProjection", &m_out_minProjection);
-     m_treeOut->Branch("medianQ", &m_out_medianQ);
-     m_treeOut->Branch("chargePerHit", &m_out_chargePerHit);
-     m_treeOut->Branch("chargePerHitStartPoints", &m_out_chargePerHitStartPoints);
-     m_treeOut->Branch("pitchValue", &m_out_pitchValue);
-     m_treeOut->Branch("shwrPCAX", &m_out_shwrPCAX);
-     m_treeOut->Branch("shwrPCAY", &m_out_shwrPCAY);
-     m_treeOut->Branch("shwrPCAZ", &m_out_shwrPCAZ);
-     m_treeOut->Branch("shwrStartHitPositionX", &m_out_shwrStartHitPositionX);
-     m_treeOut->Branch("shwrStartHitPositionY", &m_out_shwrStartHitPositionY);
-     m_treeOut->Branch("shwrStartHitPositionZ", &m_out_shwrStartHitPositionZ);
-
-   }
-  
+   // Showers
+   m_treeOut->Branch("shwrfitLength", &m_out_shwrfitLength);
+   m_treeOut->Branch("shwrfitCentroidX", &m_out_shwrfitCentroidX);
+   m_treeOut->Branch("shwrfitCentroidY", &m_out_shwrfitCentroidY);
+   m_treeOut->Branch("shwrfitCentroidZ", &m_out_shwrfitCentroidZ);
+   m_treeOut->Branch("shwrfitStartX", &m_out_shwrfitStartX);
+   m_treeOut->Branch("shwrfitStartY", &m_out_shwrfitStartY);
+   m_treeOut->Branch("shwrfitStartZ", &m_out_shwrfitStartZ);
+   m_treeOut->Branch("shwrfitDirX", &m_out_shwrfitDirX);
+   m_treeOut->Branch("shwrfitDirY", &m_out_shwrfitDirY);
+   m_treeOut->Branch("shwrfitDirZ", &m_out_shwrfitDirZ);
+   m_treeOut->Branch("shwrSliceId", &m_out_shwrSliceId);
+   m_treeOut->Branch("shwrClusterId", &m_out_shwrClusterId);
+   m_treeOut->Branch("startTrkSlidingFitDirX", &m_out_startTrkSlidingFitDirX);
+   m_treeOut->Branch("startTrkSlidingFitDirY", &m_out_startTrkSlidingFitDirY);
+   m_treeOut->Branch("startTrkSlidingFitDirZ", &m_out_startTrkSlidingFitDirZ);
+   m_treeOut->Branch("shwrStartPointsX", &m_out_shwrStartPointsX);
+   m_treeOut->Branch("shwrStartPointsY", &m_out_shwrStartPointsY);
+   m_treeOut->Branch("shwrStartPointsZ", &m_out_shwrStartPointsZ);
+   m_treeOut->Branch("shwrdEdx", &m_out_shwrdEdx);
+   m_treeOut->Branch("shwrTotalE", &m_out_shwrTotalE);
+   m_treeOut->Branch("shwrStartPointsRecoId", &m_out_shwrStartPointsRecoId);
+   m_treeOut->Branch("minProjection", &m_out_minProjection);
+   m_treeOut->Branch("medianQ", &m_out_medianQ);
+   m_treeOut->Branch("chargePerHit", &m_out_chargePerHit);
+   m_treeOut->Branch("chargePerHitStartPoints", &m_out_chargePerHitStartPoints);
+   m_treeOut->Branch("pitchValue", &m_out_pitchValue);
+   m_treeOut->Branch("shwrPCAX", &m_out_shwrPCAX);
+   m_treeOut->Branch("shwrPCAY", &m_out_shwrPCAY);
+   m_treeOut->Branch("shwrPCAZ", &m_out_shwrPCAZ);
+   m_treeOut->Branch("shwrStartHitPositionX", &m_out_shwrStartHitPositionX);
+   m_treeOut->Branch("shwrStartHitPositionY", &m_out_shwrStartHitPositionY);
+   m_treeOut->Branch("shwrStartHitPositionZ", &m_out_shwrStartHitPositionZ);
  }
 
  void NDRecoOutputData::ClearData()

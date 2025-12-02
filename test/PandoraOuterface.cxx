@@ -294,8 +294,7 @@ void ProcessPostReco(const ParameterStruct &parameters)
 	    << parameters.pixelPitch << " and track/shower separation score of " << parameters.trackScoreCut << std::endl;
 
   // Create the class where we'll store the output info
-  //
-  NDRecoOutputData fOut( parameters.outfileName, parameters.runTrackFit, parameters.runShowerFit, parameters.fShouldRunPID);
+  NDRecoOutputData fOut( parameters.outfileName );
 
   // Loop events
   for ( long entryIdx = 0; entryIdx < nEntries; ++entryIdx ) {
@@ -389,6 +388,38 @@ void ProcessPostReco(const ParameterStruct &parameters)
       } // loop hits
 
       // Fit it as a track?
+      if ( !parameters.runTrackFit || (parameters.trackScoreCut > 0. && trackScore < parameters.trackScoreCut) ) {
+	// if we aren't running the track fit, then fill defaults for the track parameters we expect for every reco particle
+	// track values
+	trkStartX.push_back(-9999.);
+	trkStartY.push_back(-9999.);
+	trkStartZ.push_back(-9999.);
+	trkStartDirX.push_back(1.);
+	trkStartDirY.push_back(0.);
+	trkStartDirZ.push_back(0.);
+	trkEndX.push_back(-9999.);
+	trkEndY.push_back(-9999.);
+	trkEndZ.push_back(-9999.);
+	trkEndDirX.push_back(1.);
+	trkEndDirY.push_back(0.);
+	trkEndDirZ.push_back(0.);
+	trkLen.push_back(0.);
+	trkContained.push_back(false);
+	trkWallDistance.push_back(0.);
+	trackFitTrackCaloE.push_back(0.);
+	trackFitVisE.push_back(0.);
+	trk_KEFromLength_muon.push_back(0.);
+	trk_KEFromLength_proton.push_back(0.);
+	trk_pFromLength_muon.push_back(0.);
+	trk_pFromLength_proton.push_back(0.);
+	// track PID info
+	pid_pdg.push_back(0);
+	pid_ndf.push_back(0);
+	pid_muScore.push_back(-5.);
+	pid_piScore.push_back(-5.);
+	pid_kScore.push_back(-5.);
+	pid_proScore.push_back(-5.);
+      }
       if ( parameters.runTrackFit && (parameters.trackScoreCut < 0. || trackScore >= parameters.trackScoreCut) ) {
 	// Run the track fit info:
 	// TODO: Make the MinTrajectoryPoints(default=2) and SlidingFitHalfWindow(20) configurable
@@ -1209,21 +1240,18 @@ else{
 
 }
 
-    if ( parameters.runTrackFit ) {
-      fOut.FillTrackBranches(trkStartX,trkStartY,trkStartZ,trkStartDirX,trkStartDirY,trkStartDirZ,trkEndX,trkEndY,trkEndZ,trkEndDirX,trkEndDirY,trkEndDirZ,trkLen,trkContained,trkWallDistance,
-			     trk_KEFromLength_muon,trk_KEFromLength_proton,trk_pFromLength_muon,trk_pFromLength_proton);
-      fOut.FillTrackCaloBranches(trackFitTrackCaloE,trackFitVisE,trackFitSliceId,trackFitPfoId,trackFitX,trackFitY,trackFitZ,trackFitQ,trackFitRR,trackFitdx,trackFitdQdx,trackFitdEdx);
-      if ( parameters.fShouldRunPID ) fOut.FillTrackPID(pid_pdg,pid_ndf,pid_muScore,pid_piScore,pid_kScore,pid_proScore);
-    }
-   if ( parameters.runShowerFit){
-     fOut.FillShowerBranches(shwrCentroidX,shwrCentroidY,shwrCentroidZ,shwrStartX, shwrStartY, shwrStartZ, shwrDirX, shwrDirY, shwrDirZ, shwrLen, 
-             shwrSliceId, shwrClusterId, startTrkSlidingFitDirX, startTrkSlidingFitDirY, startTrkSlidingFitDirZ,
-             shwrStartPointsX, shwrStartPointsY, shwrStartPointsZ, shwrdEdx, shwrTotalE, shwrStartPointsRecoId, minProjection, 
-             medianQ,chargePerHit, chargePerHitStartPoints, pitchValue,
-             shwrPCAX, shwrPCAY, shwrPCAZ,
-             shwrStartHitPositionX, shwrStartHitPositionY, shwrStartHitPositionZ);
-}
-
+    // Fill track branches: this will fill per particle values with default values if track fit is not run or is skipped
+    fOut.FillTrackBranches(trkStartX,trkStartY,trkStartZ,trkStartDirX,trkStartDirY,trkStartDirZ,trkEndX,trkEndY,trkEndZ,trkEndDirX,trkEndDirY,trkEndDirZ,trkLen,trkContained,trkWallDistance,
+			   trk_KEFromLength_muon,trk_KEFromLength_proton,trk_pFromLength_muon,trk_pFromLength_proton);
+    fOut.FillTrackCaloBranches(trackFitTrackCaloE,trackFitVisE,trackFitSliceId,trackFitPfoId,trackFitX,trackFitY,trackFitZ,trackFitQ,trackFitRR,trackFitdx,trackFitdQdx,trackFitdEdx);
+    fOut.FillTrackPID(pid_pdg,pid_ndf,pid_muScore,pid_piScore,pid_kScore,pid_proScore);
+    // Fill shower branches
+    fOut.FillShowerBranches(shwrCentroidX,shwrCentroidY,shwrCentroidZ,shwrStartX, shwrStartY, shwrStartZ, shwrDirX, shwrDirY, shwrDirZ, shwrLen,
+			    shwrSliceId, shwrClusterId, startTrkSlidingFitDirX, startTrkSlidingFitDirY, startTrkSlidingFitDirZ,
+			    shwrStartPointsX, shwrStartPointsY, shwrStartPointsZ, shwrdEdx, shwrTotalE, shwrStartPointsRecoId, minProjection,
+			    medianQ,chargePerHit, chargePerHitStartPoints, pitchValue,
+			    shwrPCAX, shwrPCAY, shwrPCAZ,
+			    shwrStartHitPositionX, shwrStartHitPositionY, shwrStartHitPositionZ);
 
     // Write our branches to the output tree
     fOut.WriteToFile();
