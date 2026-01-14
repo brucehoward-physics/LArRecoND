@@ -339,7 +339,7 @@ void ProcessPostReco(const ParameterStruct &parameters)
         std::vector<float> shwrDirX, shwrDirY, shwrDirZ;
         std::vector<float> shwrLen;
         std::vector<int> shwrSliceId, shwrClusterId;
-        std::vector<double> shwrdEdx;
+        std::vector<float> shwrdEdx;
         std::vector<float> shwrEnergy;
         std::vector<float> shwrEndX, shwrEndY, shwrEndZ;
 
@@ -1115,7 +1115,7 @@ void ProcessPostReco(const ParameterStruct &parameters)
                 //loop over the caloHitList
 
                 float projection;
-                std::map<double, CartesianVector> projectionMap;
+                std::map<float, CartesianVector> projectionMap;
                 CartesianVector hitPosition(0.f, 0.f, 0.f);
 
                 //Find projections for each hit along the primary axis and save them into a map from least to greatest
@@ -1132,23 +1132,25 @@ void ProcessPostReco(const ParameterStruct &parameters)
                 //Define a proximity radius and proximity threshold
 
                 CartesianVector showerStartHitPos(0.f, 0.f, 0.f);
-                float showerStartHitProjectionValue(9999);
-
-                CartesianVector hit_i_pos(0.f, 0.f, 0.f), hit_j_pos(0.f, 0.f, 0.f);
+                //float showerStartHitProjectionValue(9999);
+                float showerStartHitProjectionValue = std::numeric_limits<float>::max();
+                //CartesianVector hit_i_pos(0.f, 0.f, 0.f), hit_j_pos(0.f, 0.f, 0.f);
                 float hit_i_proj(9999);
 
                 int hitProximityRadius = parameters.proximityHitsRadius;
                 int proximityHitsCounter;
-                float hit_i_j_dist;
+                //float hit_i_j_dist;
                 int proximityHitsThreshold = parameters.proximityHitsThreshold;
 
-                for (auto iMapEntry : projectionMap)
+                for (const auto &iMapEntry : projectionMap)
                 {
+                    float hit_i_j_dist;
+                    CartesianVector hit_i_pos(0.f, 0.f, 0.f), hit_j_pos(0.f, 0.f, 0.f);
                     proximityHitsCounter = 0;
                     hit_i_pos = iMapEntry.second;
                     hit_i_proj = iMapEntry.first;
 
-                    for (auto jMapEntry : projectionMap)
+                    for (const auto &jMapEntry : projectionMap)
                     {
 
                         hit_j_pos = jMapEntry.second;
@@ -1162,23 +1164,25 @@ void ProcessPostReco(const ParameterStruct &parameters)
                         if (hit_i_j_dist <= hitProximityRadius)
                         {
                             proximityHitsCounter++;
-                        }
+                     //   }
 
-                        if (proximityHitsCounter > proximityHitsThreshold)
-                        {
-                            showerStartHitPos = hit_i_pos;
-                            showerStartHitProjectionValue = hit_i_proj;
-                            break;
+                            if (proximityHitsCounter > proximityHitsThreshold)
+                            {
+                                showerStartHitPos = hit_i_pos;
+                                showerStartHitProjectionValue = hit_i_proj;
+                                break;
+                            }
                         }
                     }
-
+                    
                     if (proximityHitsCounter > proximityHitsThreshold)
                     {
                         break;
                     }
                 }
 
-                if (showerStartHitProjectionValue == 9999)
+                //if (showerStartHitProjectionValue == 9999)
+                if ( fabs(showerStartHitProjectionValue - std::numeric_limits<float>::max()) < std::numeric_limits<float>::epsilon() )
                 {
                     showerStartHitPos = projectionMap.begin()->second;
                     showerStartHitProjectionValue = projectionMap.begin()->first;
@@ -1196,21 +1200,21 @@ void ProcessPostReco(const ParameterStruct &parameters)
 
                 //Check if shower start point and direction are in the right direction
 
-                std::vector<double> perp_dist_vec;
-                std::vector<double> proj_vec;
+                std::vector<float> perp_dist_vec;
+                std::vector<float> proj_vec;
 
-                for (auto iMapEntry : projectionMap)
+                for (const auto &iMapEntry : projectionMap)
                 {
                     CartesianVector start_to_hit_dir = (iMapEntry.second - showerStartHitPos);
-                    double proj = start_to_hit_dir.GetDotProduct(showerDirection);
+                    float proj = start_to_hit_dir.GetDotProduct(showerDirection);
                     CartesianVector perp_vec = start_to_hit_dir - showerDirection * proj;
-                    double perp_dist = perp_vec.GetMagnitude();
+                    float perp_dist = perp_vec.GetMagnitude();
                     proj_vec.push_back(proj);
                     perp_dist_vec.push_back(perp_dist);
                 }
 
                 float median = TMath::Median(proj_vec.size(), &proj_vec[0]);
-                std::vector<double> perp_dist_low, perp_dist_high;
+                std::vector<float> perp_dist_low, perp_dist_high;
 
                 for (unsigned int iHit = 0; iHit < proj_vec.size(); iHit++)
                 {
@@ -1225,8 +1229,8 @@ void ProcessPostReco(const ParameterStruct &parameters)
                     }
                 }
 
-                double avg_low = TMath::Mean(perp_dist_low.size(), &perp_dist_low[0]);
-                double avg_high = TMath::Mean(perp_dist_high.size(), &perp_dist_high[0]);
+                float avg_low = TMath::Mean(perp_dist_low.size(), &perp_dist_low[0]);
+                float avg_high = TMath::Mean(perp_dist_high.size(), &perp_dist_high[0]);
 
                 if (avg_low > avg_high)
                 {
@@ -1241,13 +1245,15 @@ void ProcessPostReco(const ParameterStruct &parameters)
                         projectionMap.insert({projection, hitPosition});
                     }
 
-                    for (auto iMapEntry : projectionMap)
+                    for (const auto &iMapEntry : projectionMap)
                     {
+                        float hit_i_j_dist;
+                        CartesianVector hit_i_pos(0.f, 0.f, 0.f), hit_j_pos(0.f,0.f,0.f);
                         proximityHitsCounter = 0;
                         hit_i_pos = iMapEntry.second;
                         hit_i_proj = iMapEntry.first;
 
-                        for (auto jMapEntry : projectionMap)
+                        for (const auto &jMapEntry : projectionMap)
                         {
                             hit_j_pos = jMapEntry.second;
                             if (hit_j_pos == hit_i_pos)

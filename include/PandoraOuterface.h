@@ -232,7 +232,7 @@ public:
         const std::vector<float> &shwrstartX, const std::vector<float> &shwrstartY, const std::vector<float> &shwrstartZ,
         const std::vector<float> &shrdirX, const std::vector<float> &shwrdirY, const std::vector<float> &shwrdirZ,
         const std::vector<float> &shwrlength, const std::vector<int> &shwrSlice, const std::vector<int> &shwrCluster,
-        const std::vector<double> &shwrdEdx, const std::vector<float> &shwrEnergy, const std::vector<float> &shwrEndX,
+        const std::vector<float> &shwrdEdx, const std::vector<float> &shwrEnergy, const std::vector<float> &shwrEndX,
         const std::vector<float> &shwrEndY, const std::vector<float> &shwrEndZ); ///< Fill the shower fit result branches
 
 private:
@@ -399,7 +399,7 @@ private:
     std::vector<float> m_out_shwrfitDirZ;
     std::vector<int> m_out_shwrSliceId;
     std::vector<int> m_out_shwrClusterId;
-    std::vector<double> m_out_shwrdEdx;
+    std::vector<float> m_out_shwrdEdx;
     std::vector<float> m_out_shwrEnergy;
     std::vector<float> m_out_shwrEndX;
     std::vector<float> m_out_shwrEndY;
@@ -905,7 +905,7 @@ void NDRecoOutputData::FillShowerBranches(const std::vector<float> &shwrcentX, c
     const std::vector<float> &shwrcentZ, const std::vector<float> &shwrstartX, const std::vector<float> &shwrstartY,
     const std::vector<float> &shwrstartZ, const std::vector<float> &shwrdirX, const std::vector<float> &shwrdirY,
     const std::vector<float> &shwrdirZ, const std::vector<float> &shwrlength, const std::vector<int> &shwrSlice,
-    const std::vector<int> &shwrCluster, const std::vector<double> &shwrdEdx, const std::vector<float> &shwrEnergy,
+    const std::vector<int> &shwrCluster, const std::vector<float> &shwrdEdx, const std::vector<float> &shwrEnergy,
     const std::vector<float> &shwrEndX, const std::vector<float> &shwrEndY, const std::vector<float> &shwrEndZ)
 {
     m_out_shwrfitCentroidX.insert(m_out_shwrfitCentroidX.end(), shwrcentX.begin(), shwrcentX.end());
