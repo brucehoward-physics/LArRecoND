@@ -1098,7 +1098,7 @@ void ProcessPostReco(const ParameterStruct &parameters)
                 lar_content::LArPcaHelper::RunPca(caloHitList, centroid, eigenValues, eigenVecs);
 
                 //Define directions to be positive
-                const CartesianVector axisDirection(eigenVecs.at(0).GetZ() > 0.f ? eigenVecs.at(0) : eigenVecs.at(0) * -1.f);
+                CartesianVector axisDirection(eigenVecs.at(0).GetZ() > 0.f ? eigenVecs.at(0) : eigenVecs.at(0) * -1.f);
 
                 shwrCentroidX.push_back(centroid.GetX());
                 shwrCentroidY.push_back(centroid.GetY());
@@ -1115,17 +1115,18 @@ void ProcessPostReco(const ParameterStruct &parameters)
                 //loop over the caloHitList
 
                 float projection;
-                std::map<float, CartesianVector> projectionMap;
+                std::multimap<float, CartesianVector> projectionMap;
                 CartesianVector hitPosition(0.f, 0.f, 0.f);
 
                 //Find projections for each hit along the primary axis and save them into a map from least to greatest
 
-                for (const CaloHit *const pCaloHit3D : caloHitList)
+                for ( const CaloHit * const pCaloHit3D : caloHitList)
                 {
 
                     projection = axisDirection.GetDotProduct(pCaloHit3D->GetPositionVector() - centroid);
-                    hitPosition = pCaloHit3D->GetPositionVector();
-                    projectionMap.insert({projection, hitPosition});
+                    //hitPosition = pCaloHit3D->GetPositionVector();
+                    //projectionMap.insert({projection, hitPosition});
+                    projectionMap.insert({projection, pCaloHit3D->GetPositionVector()});
                 }
 
                 // constants for looping through projection
@@ -1141,7 +1142,11 @@ void ProcessPostReco(const ParameterStruct &parameters)
                 int proximityHitsCounter;
                 //float hit_i_j_dist;
                 int proximityHitsThreshold = parameters.proximityHitsThreshold;
+                
+                //for(const auto &iMapEntry : projectionMap){
+              //  std::cout << "Projection: " << iMapEntry.first << "Hit: " << iMapEntry.second << std::endl;
 
+               // }
                 for (const auto &iMapEntry : projectionMap)
                 {
                     float hit_i_j_dist;
@@ -1149,6 +1154,7 @@ void ProcessPostReco(const ParameterStruct &parameters)
                     proximityHitsCounter = 0;
                     hit_i_pos = iMapEntry.second;
                     hit_i_proj = iMapEntry.first;
+                    //std::cout<< "Map projection: " << hit_i_proj << "Map Position: " << hit_i_pos << std::endl;
 
                     for (const auto &jMapEntry : projectionMap)
                     {
@@ -1238,24 +1244,29 @@ void ProcessPostReco(const ParameterStruct &parameters)
                     CartesianVector axisDirectionFlipped(-axisDirection.GetX(), -axisDirection.GetY(), -axisDirection.GetZ());
                     projectionMap.clear();
 
+                    
                     for (const CaloHit *const pCaloHit3D : caloHitList)
                     {
                         projection = axisDirectionFlipped.GetDotProduct(pCaloHit3D->GetPositionVector() - centroid);
                         hitPosition = pCaloHit3D->GetPositionVector();
                         projectionMap.insert({projection, hitPosition});
                     }
-
-                    for (const auto &iMapEntry : projectionMap)
+                    
+                    //for (auto iMapEntry = projectionMap.rbegin(); iMapEntry != projectionMap.rend(); ++iMapEntry)
+                    for(auto iMapEntry : projectionMap)
                     {
                         float hit_i_j_dist;
                         CartesianVector hit_i_pos(0.f, 0.f, 0.f), hit_j_pos(0.f,0.f,0.f);
                         proximityHitsCounter = 0;
                         hit_i_pos = iMapEntry.second;
-                        hit_i_proj = iMapEntry.first;
+                        hit_i_proj =  iMapEntry.first;
+//                        std::cout << "Flipped map projection (should be negative): " << hit_i_proj << " Flipped map position: " << hit_i_pos << std::endl;
 
                         for (const auto &jMapEntry : projectionMap)
+                        //for(auto jMapEntry = projectionMap.rbegin(); jMapEntry != projectionMap.rend(); ++jMapEntry)
                         {
                             hit_j_pos = jMapEntry.second;
+                       
                             if (hit_j_pos == hit_i_pos)
                             {
                                 continue;

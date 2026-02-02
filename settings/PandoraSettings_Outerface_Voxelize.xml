@@ -7,7 +7,7 @@
     <TrackScoreCut>.5</TrackScoreCut>
     <!-- Track fitter settings -->
     <!-- 2x2 -->
-    <Detector>0</Detector>
+    <Detector>1</Detector>
     <PixelPitch>0.38</PixelPitch>
     <!-- More complicated options on refining algs -->
     <ShouldApplyThreshold>false</ShouldApplyThreshold>
@@ -33,8 +33,8 @@
     <BirksRecombination>true</BirksRecombination>    
     <!-- PID -->
     <!-- Using nominal dEdx Res Template file in larsoft_data repo on CVMFS -->
-    <ShouldRunPID>false</ShouldRunPID>
-    <PIDAlgChi2PID>false</PIDAlgChi2PID>
+    <ShouldRunPID>true</ShouldRunPID>
+    <PIDAlgChi2PID>true</PIDAlgChi2PID>
     <!-- And try a run with the dx restriction on -->
     <Chi2RestrictDX>true</Chi2RestrictDX>
 </pandora>
