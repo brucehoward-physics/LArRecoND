@@ -36,6 +36,6 @@
     <ShouldRunPID>true</ShouldRunPID>
     <PIDAlgChi2PID>true</PIDAlgChi2PID>
     <!-- And try a run with the dx restriction on -->
-    <Chi2RestrictDX>true</Chi2RestrictDX>
+    <Chi2RestrictDX>false</Chi2RestrictDX>
 </pandora>
 
