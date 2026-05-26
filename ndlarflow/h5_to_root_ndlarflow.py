@@ -19,7 +19,7 @@ import torch as pt
 
 # Main function with command line settable params
 def printUsage():
-    print('python h5_to_root_ndlarflow.py FileList IsData IsFinalHits OutName')
+    print('python h5_to_root_ndlarflow.py FileList IsData IsFinalHits UseQLMatch QLMatchList OutName')
     print('-- Parameters')
     print('FileList    [REQUIRED]:                                         comma separated set of files to convert - note it will be one output')
     print('IsData      [OPTIONAL, DEFAULT = 0, is MC]:                     1 = Data, otherwise = MC')
