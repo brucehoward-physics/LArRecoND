@@ -37,6 +37,7 @@ void rootToRootConversion(
     Float_t in_x[MaxDepthArray];
     Float_t in_y[MaxDepthArray];
     Float_t in_z[MaxDepthArray];
+    Float_t in_t0[MaxDepthArray];
     Float_t in_ts[MaxDepthArray];
     Float_t in_charge[MaxDepthArray];
     Float_t in_E[MaxDepthArray];
@@ -98,6 +99,7 @@ void rootToRootConversion(
     tr->SetBranchAddress("x",&in_x);
     tr->SetBranchAddress("y",&in_y);
     tr->SetBranchAddress("z",&in_z);
+    tr->SetBranchAddress("t0",&in_t0);
     tr->SetBranchAddress("ts",&in_ts);
     tr->SetBranchAddress("charge",&in_charge);
     tr->SetBranchAddress("E",&in_E);
@@ -156,6 +158,7 @@ void rootToRootConversion(
     std::vector<float> x;
     std::vector<float> y;
     std::vector<float> z;
+    std::vector<float> t0;
     std::vector<float> ts;
     std::vector<float> E;
     std::vector<float> charge;
@@ -213,6 +216,7 @@ void rootToRootConversion(
     outgoingTree->Branch("x", &x);
     outgoingTree->Branch("y", &y);
     outgoingTree->Branch("z", &z);
+    outgoingTree->Branch("t0", &t0);
     outgoingTree->Branch("ts", &ts);
     outgoingTree->Branch("E", &E);
     outgoingTree->Branch("charge", &charge);
@@ -351,6 +355,7 @@ void rootToRootConversion(
 	    x.clear();
             y.clear();
             z.clear();
+	    t0.clear();
             ts.clear();
             E.clear();
             charge.clear();
@@ -420,6 +425,7 @@ void rootToRootConversion(
             x.push_back(in_x[idxHit]);
             y.push_back(in_y[idxHit]);
             z.push_back(in_z[idxHit]);
+	    t0.push_back(in_t0[idxHit]);
             ts.push_back(in_ts[idxHit]);
             E.push_back(in_E[idxHit]);
             charge.push_back(in_charge[idxHit]);

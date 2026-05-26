@@ -9,6 +9,8 @@ import h5flow
 import os
 import sys
 
+import torch as pt
+
 # Refactored version of h5 to ROOT conversion, Bruce Howard - 2025
 # initial scripts are now saved in e.g. _minirun6_2.py and _minirun6_3.py versions e.g. and thanks to Richie Diurba and any others who made these scripts
 
@@ -22,6 +24,8 @@ def printUsage():
     print('FileList    [REQUIRED]:                                         comma separated set of files to convert - note it will be one output')
     print('IsData      [OPTIONAL, DEFAULT = 0, is MC]:                     1 = Data, otherwise = MC')
     print('IsFinalHits [OPTIONAL, DEFAULT = 0, prompt hits]:               1 = use "final" hits, otherwise = "prompt"')
+    print('UseQLMatch  [OPTIONAL, DEFAULT = 0, no QL Match]:               1 = use "beta" version of QL Match, with input .pt file')
+    print('QLMatchList [OPTIONAL, DEFAULT = empty list]')
     print('OutName     [OPTIONAL, DEFAULT = input[0]+"_hits_uproot.root"]: string for an output file name if you want to override. Note that default writes to current directory.')
     print('')
     print('NOTE: The output of this file should then be processed with the rootToRootConversion macro to get the format expected by LArRecoND.')
@@ -31,6 +35,8 @@ def main(argv=None):
     fileNames=[]
     useData=False
     useFinalHits=False
+    useQLMatch=False
+    filesQLMatch=[]
     overrideOutname=1
     outname=''
 
@@ -62,8 +68,18 @@ def main(argv=None):
             if int(sys.argv[3])==1:
                 useFinalHits=True
         if len(sys.argv)>4 and sys.argv[4]!=None:
-            outname=str(sys.argv[4])
+            if int(sys.argv[4])>0:
+                useQLMatch=True
+        if len(sys.argv)>5 and sys.argv[5]!=None:
+            fileListQL=str(sys.argv[5])
+            filesQLMatch=fileListQL.split(',')
+        if len(sys.argv)>6 and sys.argv[6]!=None:
+            outname=str(sys.argv[6])
             overrideOutname=0
+
+    if len(filesQLMatch)!=len(fileNames) and useQLMatch==True:
+        print('You are asking to use QL match, but the input files list size and QL match list size do not match.')
+        return
 
     MaxArrayDepth=int(10000)
     MaxArrayDepthData=int(100000)
@@ -86,6 +102,7 @@ def main(argv=None):
         hits_x = np.array([0.]).astype('float32')
         hits_Q = np.array([0.]).astype('float32')
         hits_E = np.array([0.]).astype('float32')
+        hits_t0 = np.array([-1.]).astype('float32')
         hits_ts = np.array([0.]).astype('float32')
         runID = np.array( [0], dtype='int32' )
         subrunID = np.array( [0], dtype='int32' )
@@ -135,7 +152,7 @@ def main(argv=None):
                        'event_start_t':event_start_t, 'event_end_t':event_end_t }
 
         if useData==False:
-            other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E, 'matches':matches,\
+            other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 't0':hits_t0, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E, 'matches':matches,\
                             'mcp_energy':trajE, 'mcp_pdg':trajPDG, 'mcp_nuid':trajVertexID, 'mcp_vertex_id':trajVertexID,\
                             'mcp_idLocal':trajIDLocal, 'mcp_id':trajID, 'mcp_px':trajPx, 'mcp_py':trajPy, 'mcp_pz':trajPz,\
                             'mcp_mother':trajParentID, 'mcp_startx':trajStartX, 'mcp_starty':trajStartY, 'mcp_startz':trajStartZ,\
@@ -146,7 +163,7 @@ def main(argv=None):
                             'hit_packetFrac':packetFrac, 'hit_particleID':particleID, 'hit_particleIDLocal':particleIDLocal,\
                             'hit_pdg':pdgHit, 'hit_vertexID':interactionIndex, 'hit_segmentID':trackID }
         else:
-            other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E }
+            other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 't0':hits_t0, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E }
 
         max_entries=0
         for key in other_dict.keys():
@@ -193,6 +210,17 @@ def main(argv=None):
 
         eventsToRun=len(events)
 
+        # Load in necessary bits for t0 from Q+L Match, if desired
+        # borrows code from R. Cross for some of the pytorch bits
+        array_of_hit_counts = []
+        if useQLMatch==True:
+            fileNameQL = filesQLMatch[fileIdx]
+            ql_data = pt.load(ql_file)
+            for ievt in range(eventsToRun):
+                this_event_calib_prompt_hits = flow_out["charge/events/","charge/calib_"+promptKey+"_hits", events["id"][ievt]]
+                this_hits_z = (np.ma.getdata(this_event_calib_prompt_hits["z"][0])+trueZOffset).astype('float32')
+                array_of_hit_counts.append( len(this_hits_z) )
+
         # Get the array of the trigger type for every event in the file
         triggerIDsData=flow_out["charge/events","charge/ext_trigs",events["id"][:]]
         triggerIDsAll=np.array(np.ma.getdata(triggerIDsData["iogroup"]),dtype='int32')
@@ -234,12 +262,23 @@ def main(argv=None):
                 hits_E = ( np.ma.getdata(event_calib_prompt_hits["E"][0]) ).astype('float32')
                 hits_ts = ( np.ma.getdata(event_calib_prompt_hits["ts_pps"][0]) ).astype('float32')
                 hits_ids = np.ma.getdata(event_calib_prompt_hits["id"][0])
+                if useQLMatch==True:
+                    if ievt in ql_data['failed_events']:
+                        hits_t0 = -1.0*np.ones(array_of_hit_counts[ievt],dtype='float32')
+                    else:
+                        hitsToThisEvent = int(np.sum(array_of_hit_counts[:ievt]))
+                        hitsEndIdx = int(hitsToThisEvent+array_of_hit_counts[ievt])
+                        hits_t0 = ql_data['calib_hit_t0_reco'][hitsToThisEvent:hitsEndIdx].numpy(dtype='float32')
+                        # Replace anything <= 0 with -1
+                        hits_t0_lteq0 = np.where(hits_t0 <= 0.)
+                        hits_t0[hits_t0_lteq0] = -1.0
             else:
                 hits_z = np.array([]).astype('float32')
                 hits_y = np.array([]).astype('float32')
                 hits_x = np.array([]).astype('float32')
                 hits_Q = np.array([]).astype('float32')
                 hits_E = np.array([]).astype('float32')
+                hits_t0 = np.array([]).astype('float32')
                 hits_ts = np.array([]).astype('float32')
                 hits_ids = np.array([])
 
@@ -397,7 +436,7 @@ def main(argv=None):
                            'event_start_t':event_start_t, 'event_end_t':event_end_t }
 
             if useData==False:
-                other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E, 'matches':matches,\
+                other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 't0':hits_t0, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E, 'matches':matches,\
                                 'mcp_energy':trajE, 'mcp_pdg':trajPDG, 'mcp_nuid':trajVertexID, 'mcp_vertex_id':trajVertexID,\
                                 'mcp_idLocal':trajIDLocal, 'mcp_id':trajID, 'mcp_px':trajPx, 'mcp_py':trajPy, 'mcp_pz':trajPz,\
                                 'mcp_mother':trajParentID, 'mcp_startx':trajStartX, 'mcp_starty':trajStartY, 'mcp_startz':trajStartZ,\
@@ -408,7 +447,7 @@ def main(argv=None):
                                 'hit_packetFrac':packetFrac, 'hit_particleID':particleID, 'hit_particleIDLocal':particleIDLocal,\
                                 'hit_pdg':pdgHit, 'hit_vertexID':interactionIndex, 'hit_segmentID':trackID }
             else:
-                other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E }
+                other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 't0':hits_t0, 'ts':hits_ts, 'charge':hits_Q, 'E':hits_E }
 
             max_entries=0
             for key in other_dict.keys():
