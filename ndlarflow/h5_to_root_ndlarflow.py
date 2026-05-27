@@ -236,7 +236,7 @@ def main(argv=None):
         array_of_hit_counts = []
         if useQLMatch==True:
             fileNameQL = filesQLMatch[fileIdx]
-            ql_data = pt.load(ql_file)
+            ql_data = pt.load(fileNameQL)
             for ievt in range(eventsToRun):
                 this_event_calib_prompt_hits = flow_out["charge/events/","charge/calib_"+promptKey+"_hits", events["id"][ievt]]
                 this_hits_z = (np.ma.getdata(this_event_calib_prompt_hits["z"][0])+trueZOffset).astype('float32')
@@ -293,7 +293,7 @@ def main(argv=None):
                     else:
                         hitsToThisEvent = int(np.sum(array_of_hit_counts[:ievt]))
                         hitsEndIdx = int(hitsToThisEvent+array_of_hit_counts[ievt])
-                        hits_t0 = ql_data['calib_hit_t0_reco'][hitsToThisEvent:hitsEndIdx].numpy(dtype='float32')
+                        hits_t0 = (ql_data['calib_hit_t0_reco'][hitsToThisEvent:hitsEndIdx].numpy()).astype('float32')
                         # Replace anything <= 0 with -1
                         hits_t0_lteq0 = np.where(hits_t0 <= 0.)
                         hits_t0[hits_t0_lteq0] = -1.0
