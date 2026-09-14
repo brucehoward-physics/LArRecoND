@@ -67,7 +67,7 @@ float LArT0Helper::GetMedianTime(const pandora::CaloHitList &inputCaloHitList)
   // If an odd number of hits, grab the middle entry of the vector
   else
     {
-      unsigned int mid = (unsigned int)(size(times)/2)+1;
+      unsigned int mid = (unsigned int)(size(times)/2.0);
       return times[mid];
     }
 
