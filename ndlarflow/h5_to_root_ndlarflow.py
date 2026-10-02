@@ -171,7 +171,7 @@ def main(argv=None):
             event_dict['unix_ts_usec'] = event_unix_ts_usec
 
         if useData==False:
-            other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 't0':hits_t0, 'ts':hits_ts, 'io_group':hits_io_group, 'io_channel':hits_io_channel,\
+            other_dict = {  'x':hits_x, 'y':hits_y, 'z':hits_z, 't0':hits_t0, 't0_conf':hits_t0_conf, 'ts':hits_ts, 'io_group':hits_io_group, 'io_channel':hits_io_channel,\
                             'chip_id':hits_chip_id, 'channel_id':hits_channel_id, 'charge':hits_Q, 'E':hits_E, 'matches':matches,\
                             'mcp_energy':trajE, 'mcp_pdg':trajPDG, 'mcp_nuid':trajVertexID, 'mcp_vertex_id':trajVertexID,\
                             'mcp_idLocal':trajIDLocal, 'mcp_id':trajID, 'mcp_px':trajPx, 'mcp_py':trajPy, 'mcp_pz':trajPz,\
@@ -237,6 +237,9 @@ def main(argv=None):
         if useQLMatch==True:
             fileNameQL = filesQLMatch[fileIdx]
             ql_data = pt.load(fileNameQL)
+            t0_key = "calib_final_hits" if promptKey == "final" else "calib_prompt_hits"
+            conf_key = "calib_final_hit_t_confidence" if promptKey == "final" else "prompt_hit_t_confidence"
+            ref = f[f"charge/events/ref/charge/{t0_key}/ref"][()]
             for ievt in range(eventsToRun):
                 this_event_calib_prompt_hits = flow_out["charge/events/","charge/calib_"+promptKey+"_hits", events["id"][ievt]]
                 this_hits_z = (np.ma.getdata(this_event_calib_prompt_hits["z"][0])+trueZOffset).astype('float32')
@@ -291,9 +294,15 @@ def main(argv=None):
                     if ievt in ql_data['failed_events']:
                         hits_t0 = -1.0*np.ones(array_of_hit_counts[ievt],dtype='float32')
                     else:
-                        hitsToThisEvent = int(np.sum(array_of_hit_counts[:ievt]))
-                        hitsEndIdx = int(hitsToThisEvent+array_of_hit_counts[ievt])
-                        hits_t0 = (ql_data['calib_hit_t0_reco'][hitsToThisEvent:hitsEndIdx].numpy()).astype('float32')
+                        # hitsToThisEvent = int(np.sum(array_of_hit_counts[:ievt]))
+                        # hitsEndIdx = int(hitsToThisEvent+array_of_hit_counts[ievt])
+                        # hits_t0 = (ql_data['calib_hit_t0_reco'][hitsToThisEvent:hitsEndIdx].numpy()).astype('float32')
+                        # hits_t0_conf = (ql_data['prompt_hit_t_confidence'][hitsToThisEvent:hitsEndIdx].numpy()).astype('float32')
+
+                        # credits to Billy
+                        idx = ref[ref[:, 0] == ievt, 1]
+                        hits_t0 = ql_data[t0_key]["t_0"].numpy()[idx]
+                        hits_t0_conf = ql_data[conf_key].numpy()
                         # Replace anything <= 0 with -1
                         hits_t0_lteq0 = np.where(hits_t0 <= 0.)
                         hits_t0[hits_t0_lteq0] = -1.0
